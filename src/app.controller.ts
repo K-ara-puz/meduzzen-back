@@ -7,6 +7,7 @@ export class AppController {
 
   @Get()
   async healthChecker(): Promise<string> {
-    return this.appService.healthCheck();
+    const result: string = await this.appService.healthCheck();
+    return result;
   }
 }
