@@ -1,0 +1,10 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: meduzzen-back
+    ports:
+      - '${DEV_PORT}:${DEV_PORT}'
+    volumes:
+      - ./src:/app/src

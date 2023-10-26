@@ -1,0 +1,13 @@
+services:
+  meduzzen-back:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./src:/app/src
+    container_name: meduzzen-back-test
+    expose:
+      - 6666
+    ports:
+      - "2323:6666"
+    command: npm run test
