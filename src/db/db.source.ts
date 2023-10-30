@@ -8,12 +8,12 @@ export const dbConnection = [
     useFactory: async (configService: ConfigService) => {
       const dataSource = new DataSource({
         type: 'postgres',
-        host: process.env.TYPEORM_HOST,
-        port: +process.env.TYPEORM_PORT,
-        username: process.env.TYPEORM_USERNAME,
-        password: process.env.TYPEORM_PASSWORD,
-        database: process.env.TYPEORM_DATABASE,
-        synchronize: true,
+        host: configService.get<string>('TYPEORM_HOST'),
+        port: +configService.get<number>('TYPEORM_PORT'),
+        username: configService.get<string>('TYPEORM_USERNAME'),
+        password: configService.get<string>('TYPEORM_PASSWORD'),
+        database: configService.get<string>('TYPEORM_DATABASE'),
+        synchronize: false,
         entities:[User]
       })
 
