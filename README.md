@@ -6,6 +6,8 @@
 | npm run start:dev    | To start project in dev   |
 | docker compose up    | To start project with Docker   |
 | docker-compose -f docker-compose.test.yml up    | To start project tests with Docker   |
+| npm run migration:generate | To generate migration |
+| npm run migration:run | To run migration |
 
 <h2 style='color: rgb(49, 64, 49);'>! Before you start the project:</h2>
 
