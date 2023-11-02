@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { mainInterface } from './app.main.interface';
 
 @Injectable()
@@ -7,6 +7,6 @@ export class AppService {
 
   async healthCheck(): Promise<mainInterface> {
     this.logger.log('healthCheck log')
-    return {'status_code': 200, 'detail': 'ok', 'result': 'working'}
+    return {'status_code': HttpStatus.OK, 'detail': 'ok', 'result': 'working'}
   }
 }
