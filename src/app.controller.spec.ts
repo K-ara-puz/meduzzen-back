@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { mainInterface } from './app.main.interface';
+import { generalResponse } from './interfaces/generalResponse.interface';
 
 describe('AppController', () => {
   let appController: AppController;
@@ -18,7 +18,7 @@ describe('AppController', () => {
   describe('/', () => {
     it('should return {}', async () => {
       const response = await appController.healthChecker()
-      let resType: mainInterface = {'status_code': 200, 'detail': 'ok', 'result': 'working'};
+      let resType: generalResponse = {'status_code': 200, 'detail': 'ok', 'result': 'working'};
       expect(response).toEqual(resType)
     });
     it('should\'nt return "some string"', async () => {

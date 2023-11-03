@@ -1,12 +1,13 @@
 import { HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { mainInterface } from './app.main.interface';
+import { generalResponse } from './interfaces/generalResponse.interface';
+import { MyLogger } from './logger/logger.service';
 
 @Injectable()
 export class AppService {
-  private readonly logger = new Logger(AppService.name);
+  private readonly logger = new MyLogger(AppService.name);
 
-  async healthCheck(): Promise<mainInterface> {
-    this.logger.log('healthCheck log')
+  async healthCheck(): Promise<generalResponse> {
+    this.logger.toLog({message: 'healthCheck Log'})
     return {'status_code': HttpStatus.OK, 'detail': 'ok', 'result': 'working'}
   }
 }
