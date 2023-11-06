@@ -3,12 +3,13 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/entities/user.entity';
-import { ErrorHandler } from 'src/errorHandler/errorHandler.service';
-import { ErrorHandlerModule } from 'src/errorHandler/errorHandler.module';
+import UserRepo from './users.repository';
+import { AuthModule } from '../auth/auth.module';
+import { AuthService } from '../auth/auth.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), ErrorHandlerModule],
+  imports: [TypeOrmModule.forFeature([User]), AuthModule],
   controllers: [UsersController],
-  providers: [UsersService, ErrorHandler],
+  providers: [UsersService, UserRepo, AuthService],
 })
 export class UsersModule {}
