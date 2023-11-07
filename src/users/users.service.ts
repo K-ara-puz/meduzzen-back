@@ -37,7 +37,8 @@ export class UsersService {
 
   async findOne(id: number): Promise<generalResponse> {
     this.logger.toLog({ message: 'find one user service' });
-    let user: UpdateUserDto = await this.userRepo.findOne(id);
+    // let user: UpdateUserDto = await this.userRepo.findOne(id);
+    let user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new HttpException('user not found', HttpStatus.NOT_FOUND);
     } else {
@@ -49,40 +50,57 @@ export class UsersService {
     }
   }
 
-  async create(user: CreateUserDto): Promise<generalResponse> {
+  async create(user: CreateUserDto) {
     this.logger.toLog({ message: 'create user service' });
-    const hashPass = await this.authService.hashPass(user.password);
-    let modifiedUser = {
-      ...user,
-      password: hashPass,
-    };
-    const savedUser: CreateUserDto = await this.userRepo.create(modifiedUser);
-    if (!savedUser) {
-      throw new HttpException('bad request', HttpStatus.BAD_REQUEST);
-    } else {
-      let { firstName, lastName, login } = savedUser;
+    try {
+    
+      // console.log(123);
+    
+      const hashPass = await this.authService.getHashPass(user.password);
+      let modifiedUser = {
+        ...user,
+        password: hashPass,
+      };
+      const savedUser: CreateUserDto = await this.userRepo.create(modifiedUser);
+      let { password, ...res } = savedUser;
+      // throw new HttpException('bad request', HttpStatus.BAD_REQUEST);
       return {
         status_code: HttpStatus.OK,
-        detail: { savedUser: { firstName, lastName, login } },
+        detail: { 'savedUser': res },
         result: 'user was created',
       };
+    } catch(exception) {
+        console.log(exception.message)
     }
+    console.log('after try')
+
+    // if (!savedUser) {
+    //   throw new HttpException('bad request', HttpStatus.BAD_REQUEST);
+    // } else {
+    //   let { password, ...res } = savedUser;
+    //   return {
+    //     status_code: HttpStatus.OK,
+    //     detail: { 'savedUser': res },
+    //     result: 'user was created',
+    //   };
+    // }
   }
 
   async update(id: number, user: UpdateUserDto): Promise<generalResponse> {
     this.logger.toLog({ message: 'update user service' });
-    const hashPass = await this.authService.hashPass(user.password);
+    const hashPass = await this.authService.getHashPass(user.password);
     let modifiedUser = {
       ...user,
       password: hashPass,
     };
     const updatedUser = await this.userRepo.update(id, modifiedUser);
+    // console.log(updatedUser)
     if (!updatedUser) {
       throw new HttpException('bad request', HttpStatus.BAD_REQUEST);
     } else {
       return {
         status_code: HttpStatus.OK,
-        detail: { updatedUser: updatedUser },
+        detail: { 'updatedUser': updatedUser },
         result: 'user was updated',
       };
     }

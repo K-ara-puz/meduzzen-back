@@ -19,8 +19,7 @@ export default class UserRepo {
   }
 
   async update(id: number, user: UpdateUserDto) {
-    await this.userRepository.update(id, user);
-    return this.findOne(id);
+    return this.userRepository.save({id, ...user});
   }
 
   async delete(id: number) {

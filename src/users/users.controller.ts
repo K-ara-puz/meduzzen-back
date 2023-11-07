@@ -9,13 +9,16 @@ import {
   Query,
   DefaultValuePipe,
   ParseIntPipe,
+  UseFilters,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { generalResponse } from 'src/interfaces/generalResponse.interface';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { HttpExceptionFilter } from '../utils/httpException.service';
 
 @Controller('users')
+@UseFilters(new HttpExceptionFilter()) 
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
