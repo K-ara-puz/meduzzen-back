@@ -21,12 +21,12 @@ export class UsersService {
 
   private logger = new MyLogger(UsersService.name);
 
-  async paginate(options: IPaginationOptions): Promise<generalResponse<object>> {
+  async paginate(options: IPaginationOptions): Promise<generalResponse<User[]>> {
     try {
       const paginatedUsers = await paginate<User>(this.userRepository, options);
       return {
         status_code: HttpStatus.OK,
-        detail: paginatedUsers,
+        detail: paginatedUsers.items,
         result: 'get paginated users',
       };
     } catch (error) {
@@ -34,7 +34,7 @@ export class UsersService {
     }
   }
 
-  async findAll(): Promise<generalResponse<object>> {
+  async findAll(): Promise<generalResponse<User[]>> {
     this.logger.toLog({ message: 'find all users service' });
     try {
       const users = await this.userRepo.findAll();
@@ -48,7 +48,7 @@ export class UsersService {
     }
   }
 
-  async findOne(id: number): Promise<generalResponse<object>> {
+  async findOne(id: number): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'find one user service' });
     try {
       let user = await this.userRepo.findOne(id);
@@ -64,7 +64,7 @@ export class UsersService {
     }
   }
 
-  async create(user: CreateUserDto): Promise<generalResponse<object>> {
+  async create(user: CreateUserDto): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'create user service' });
     try {
       const hashPass = await this.authService.getHashPass(user.password);
@@ -84,7 +84,7 @@ export class UsersService {
     }
   }
 
-  async update(id: number, user: UpdateUserDto): Promise<generalResponse<object>> {
+  async update(id: number, user: UpdateUserDto): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'update user service' });
     try {
       const hashPass = await this.authService.getHashPass(user.password);
@@ -93,10 +93,12 @@ export class UsersService {
         ...user,
         password: hashPass,
       };
-      const updatedUser = await this.userRepo.update(id, modifiedUser);
+      let foundedUser = await this.userRepo.findOne(id);
+      if (!foundedUser) throw new HttpException('user not exist', HttpStatus.NOT_FOUND);
+      const {password, ...res} = await this.userRepo.update(id, modifiedUser);
       return {
         status_code: HttpStatus.OK,
-        detail: updatedUser,
+        detail: res,
         result: 'user was updated',
       };
     } catch (error) {
@@ -104,10 +106,10 @@ export class UsersService {
     }
   }
 
-  async delete(id: number): Promise<generalResponse<object>> {
+  async delete(id: number): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'delete user service' });
     try {
-      const user = await this.userRepo.findOne(id);
+      const {password, ...user} = await this.userRepo.findOne(id);
       if (!user) throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
       await this.userRepo.delete(id);
       return {
