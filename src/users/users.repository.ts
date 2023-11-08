@@ -10,6 +10,10 @@ export default class UserRepo {
     private userRepository: Repository<User>,
   ) {}
 
+  async findAll() {
+    return this.userRepository.find();
+  }
+
   async findOne(id: number) {
     return this.userRepository.findOne({ where: { id } });
   }
@@ -19,7 +23,7 @@ export default class UserRepo {
   }
 
   async update(id: number, user: UpdateUserDto) {
-    return this.userRepository.save({id, ...user});
+    return await this.userRepository.save({id: +id, ...user});
   }
 
   async delete(id: number) {

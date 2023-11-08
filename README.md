@@ -9,6 +9,8 @@
 | npm run migration:generate | To generate migration |
 | npm run migration:run | To run migration |
 
+## Swagger documentation: http://localhost:PORT/api
+
 <h2 style='color: rgb(49, 64, 49);'>! Before you start the project:</h2>
 
 ### * Environment variables
