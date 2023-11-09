@@ -1,9 +1,12 @@
 import { DataSource, DataSourceOptions } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
 import 'dotenv/config';
 
 let configService = new ConfigService();
 
+export const dataSourceOptions: DataSourceOptions = {
 export const dataSourceOptions: DataSourceOptions = {
   type: 'postgres',
   host: configService.get<string>('TYPEORM_HOST'),

@@ -19,6 +19,27 @@ import { ApiTags, ApiOperation, ApiParam,ApiBody } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
 
 @ApiTags('Users')
+import {
+  Body,
+  Controller,
+  Get,
+  Put,
+  Delete,
+  Param,
+  Post,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
+  UseFilters,
+} from '@nestjs/common';
+import { UsersService } from './users.service';
+import { generalResponse } from 'src/interfaces/generalResponse.interface';
+import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiTags, ApiOperation, ApiParam,ApiBody } from '@nestjs/swagger';
+import { User } from '../entities/user.entity';
+
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
