@@ -9,7 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import AuthRepo from './auth.repository';
 import { User } from '../entities/user.entity';
 import { ITokens } from '../interfaces/Tokens.interface';
-import { UpdateUserDto } from '../users/dto/update-user.dto';
+import { LoginUser } from './dto/loginUser.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,19 +20,81 @@ export class AuthService {
   ) {}
 
   private async hashPass(pass: string): Promise<string> {
-    return await bcrypt.hash(pass, 10);
+    try {
+      return await bcrypt.hash(pass, 10);
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
   private async generateTokens(payload: Partial<User>): Promise<ITokens> {
-    const accessToken = jwt.sign( payload, this.configService.get('JWT_ACCESS_SECRET'), { expiresIn: '24h' }, );
-    const refreshToken = jwt.sign( payload, this.configService.get('JWT_REFRESH_SECRET'), { expiresIn: '7d' }, );
-    return { accessToken, refreshToken };
+    try {
+      const accessToken = jwt.sign(
+        payload,
+        this.configService.get('JWT_ACCESS_SECRET'),
+        { expiresIn: '24h' },
+      );
+      const refreshToken = jwt.sign(
+        payload,
+        this.configService.get('JWT_REFRESH_SECRET'),
+        { expiresIn: '6d' },
+      );
+      const actionToken = jwt.sign(
+        payload,
+        this.configService.get('JWT_ACTION_SECRET'),
+        { expiresIn: '7d' },
+      );
+      return { accessToken, actionToken, refreshToken };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
-  private async saveTokens(userId: Partial<User>, tokens: ITokens): Promise<void> {
-    await this.authRepo.create(userId, tokens);
+  private async saveTokens(userId: Partial<User>, tokens: ITokens) {
+    try {
+      return await this.authRepo.create(userId, tokens);
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  private async updateTokens(userId: Partial<User>, tokens: ITokens) {
+    try {
+      return await this.authRepo.update(userId, tokens);
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  private async comparePass(pass1: string, pass2: string): Promise<boolean> {
+    try {
+      return await bcrypt.compare(pass1, pass2);
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async getHashPass(pass: string): Promise<string> {
-    return await this.hashPass(pass);
+    try {
+      return await this.hashPass(pass);
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async register(user: CreateUserDto): Promise<generalResponse<Partial<User>>> {
@@ -40,25 +102,80 @@ export class AuthService {
       const userService = this.moduleRef.get(UsersService, { strict: false });
 
       const hashPass = await this.hashPass(user.password);
-
       let modifiedUser = {
         ...user,
         password: hashPass,
       };
 
       let { detail: createdUser } = await userService.create(modifiedUser);
-      const tokens = await this.generateTokens({...createdUser});
-      await this.saveTokens({id: createdUser.id}, tokens);
+      const tokens = await this.generateTokens({ ...createdUser });
+      await this.saveTokens({ id: createdUser.id }, tokens);
 
-
-      return { status_code: HttpStatus.CREATED, detail: {...createdUser, ...tokens}, result: 'user was registered' };
-
+      return {
+        status_code: HttpStatus.CREATED,
+        detail: { ...createdUser, ...tokens },
+        result: 'user was registered',
+      };
     } catch (error) {
-      throw new HttpException( error, error.status || HttpStatus.INTERNAL_SERVER_ERROR, );
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-  async login(user: UpdateUserDto) {
-    // console.log(user)
+  async login(userData: LoginUser) {
+    try {
+      const userService = this.moduleRef.get(UsersService, { strict: false });
+
+      const user = await userService.findOneByEmail(userData.email);
+      if (!user)
+        throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
+
+      const isPassEquals = await this.comparePass(
+        userData.password,
+        user.password,
+      );
+      if (!isPassEquals)
+        throw new HttpException('incorrect pass', HttpStatus.BAD_REQUEST);
+
+      const tokens = await this.generateTokens(userData);
+      const savedTokens = await this.updateTokens({ id: user.id }, tokens);
+      const { password, ...userForBack } = user;
+
+      return {
+        status_code: HttpStatus.OK,
+        detail: { ...userForBack, ...savedTokens },
+        result: 'login success',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async logout(token: ITokens) {
+    try {
+      // get tokens from headers
+      const modifiedToken = token.toString().split(' ');
+      const user = await this.authRepo.remove(modifiedToken[1]);
+
+      return {
+        status_code: HttpStatus.OK,
+        detail: 'logout success',
+        result: 'logout success',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async authMe() {
+    
   }
 }

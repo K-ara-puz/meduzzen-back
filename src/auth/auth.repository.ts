@@ -1,8 +1,8 @@
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Auth } from "../entities/auth.entity";
-import { ITokens } from "../interfaces/Tokens.interface";
-import { User } from "../entities/user.entity";
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Auth } from '../entities/auth.entity';
+import { ITokens } from '../interfaces/Tokens.interface';
+import { User } from '../entities/user.entity';
 
 export default class AuthRepo {
   constructor(
@@ -15,11 +15,24 @@ export default class AuthRepo {
       userId: userId,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      created_at: '1999-01-08',
-      deleted_at: '1999-01-08',
-      updated_at: '1999-01-08'
-    }
+      actionToken: tokens.actionToken,
+    };
     return await this.authRepository.save(res);
   }
 
+  async update(userId: Partial<User>, tokens: ITokens) {
+    let res = {
+      accessToken: tokens.accessToken,
+      actionToken: tokens.actionToken,
+      refreshToken: tokens.refreshToken,
+    };
+    const auth = await this.authRepository.findOne({ where: {userId: { id: userId.id }} })
+    return await this.authRepository.save({id: auth.id, ...res});
+  }
+
+  async remove(token: string) {
+    const auth = await this.authRepository.findOne({ where: {accessToken: token} });
+    if (!auth) throw new Error('user is not exist')
+    return await this.authRepository.delete({id: auth.id});
+  }
 }

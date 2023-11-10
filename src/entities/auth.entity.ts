@@ -3,28 +3,28 @@ import { User } from './user.entity';
 
 @Entity()
 export class Auth {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
   @OneToOne(() => User)
   @JoinColumn()
-  userId: Partial<User>
+  userId: User
   
   @Column()
   accessToken: string;
 
-  @Column({nullable: true})
+  @Column()
   actionToken: string;
 
   @Column()
   refreshToken: string;
 
-  @Column()
+  @Column({ default: () => "NOW()" })
   created_at: Date;
 
-  @Column()
+  @Column({ default: () => "NOW()" })
   updated_at: Date;
   
-  @Column()
+  @Column({ default: () => "NOW()" })
   deleted_at: Date;
 }

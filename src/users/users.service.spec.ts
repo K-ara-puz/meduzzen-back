@@ -37,7 +37,7 @@ describe('UsersService', () => {
 
   describe('user CRUD', () => {
     it('should return user', async () => {
-      let data = await userService.findOne(10);
+      let data = await userService.findOne('10');
       expect(data.detail).toEqual({...existingUser})
     });
     it('should return users[]', async () => {

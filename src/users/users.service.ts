@@ -10,6 +10,7 @@ import UserRepo from './users.repository';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { AuthService } from '../auth/auth.service';
 import { ModuleRef } from '@nestjs/core';
+import { LoginUser } from '../auth/dto/loginUser.dto';
 
 @Injectable()
 export class UsersService {
@@ -50,7 +51,7 @@ export class UsersService {
     }
   }
 
-  async findOne(id: number): Promise<generalResponse<Partial<User>>> {
+  async findOne(id: string): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'find one user service' });
     try {
       let user = await this.userRepo.findOne(id);
@@ -64,6 +65,10 @@ export class UsersService {
     } catch (error) {
       throw new HttpException(error, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async findOneByEmail(email: string) {
+    return await this.userRepo.findOneByEmail(email);
   }
 
   async create(user: CreateUserDto): Promise<generalResponse<Partial<User>>> {
@@ -81,7 +86,7 @@ export class UsersService {
     }
   }
 
-  async update(id: number, user: UpdateUserDto): Promise<generalResponse<Partial<User>>> {
+  async update(id: string, user: UpdateUserDto): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'update user service' });
     try {
       const authService = this.moduleRef.get(AuthService, { strict: false });
@@ -105,7 +110,7 @@ export class UsersService {
     }
   }
 
-  async delete(id: number): Promise<generalResponse<Partial<User>>> {
+  async delete(id: string): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'delete user service' });
     try {
       const {password, ...user} = await this.userRepo.findOne(id);

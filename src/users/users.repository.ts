@@ -14,7 +14,7 @@ export default class UserRepo {
     return this.userRepository.find();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     return this.userRepository.findOne({ where: { id } });
   }
 
@@ -22,11 +22,15 @@ export default class UserRepo {
     return this.userRepository.save(user);
   }
 
-  async update(id: number, user: UpdateUserDto) {
-    return await this.userRepository.save({id: +id, ...user});
+  async update(id: string, user: UpdateUserDto) {
+    return this.userRepository.save({id: id, ...user});
   }
 
-  async delete(id: number) {
+  async delete(id: string) {
     return this.userRepository.delete(id);
+  }
+
+  async findOneByEmail(email: string) {
+    return this.userRepository.findOne({ where: {email: email} })
   }
 }

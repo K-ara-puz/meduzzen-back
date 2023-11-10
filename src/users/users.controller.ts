@@ -34,7 +34,7 @@ export class UsersController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: number): Promise<generalResponse<Partial<User>>> {
+  async findOne(@Param('id') id: string): Promise<generalResponse<Partial<User>>> {
     return this.usersService.findOne(id);
   }
 
@@ -47,14 +47,14 @@ export class UsersController {
   @ApiParam({ name: "id", required: true, description: "user identifier" })
   @ApiBody({ type: [UpdateUserDto] })
   async update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() user: UpdateUserDto,
   ): Promise<generalResponse<Partial<User>>> {
     return this.usersService.update(id, user);
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: number): Promise<generalResponse<Partial<User>>> {
+  async delete(@Param('id') id: string): Promise<generalResponse<Partial<User>>> {
     return this.usersService.delete(id);
   }
 }
