@@ -31,19 +31,19 @@ export class AuthService {
   }
   private async generateTokens(payload: Partial<User>): Promise<ITokens> {
     try {
-      const accessToken = jwt.sign(
-        payload,
-        this.configService.get('JWT_ACCESS_SECRET'),
-        { expiresIn: '24h' },
-      );
-      const refreshToken = jwt.sign(
-        payload,
-        this.configService.get('JWT_REFRESH_SECRET'),
-        { expiresIn: '6d' },
-      );
-      const actionToken = jwt.sign(
+      const actionToken: string = jwt.sign(
         payload,
         this.configService.get('JWT_ACTION_SECRET'),
+        { expiresIn: '30m' },
+      );
+      const accessToken: string = jwt.sign(
+        payload,
+        this.configService.get('JWT_ACCESS_SECRET'),
+        { expiresIn: '1d' },
+      );
+      const refreshToken: string = jwt.sign(
+        payload,
+        this.configService.get('JWT_REFRESH_SECRET'),
         { expiresIn: '7d' },
       );
       return { accessToken, actionToken, refreshToken };
@@ -54,7 +54,10 @@ export class AuthService {
       );
     }
   }
-  private async saveTokens(userId: Partial<User>, tokens: ITokens) {
+  private async saveTokens(
+    userId: Partial<User>,
+    tokens: ITokens,
+  ): Promise<Partial<User>> {
     try {
       return await this.authRepo.create(userId, tokens);
     } catch (error) {
@@ -64,7 +67,10 @@ export class AuthService {
       );
     }
   }
-  private async updateTokens(userId: Partial<User>, tokens: ITokens) {
+  private async updateTokens(
+    userId: Partial<User>,
+    tokens: ITokens,
+  ): Promise<Partial<User>> {
     try {
       return await this.authRepo.update(userId, tokens);
     } catch (error) {
@@ -110,7 +116,6 @@ export class AuthService {
       let { detail: createdUser } = await userService.create(modifiedUser);
       const tokens = await this.generateTokens({ ...createdUser });
       await this.saveTokens({ id: createdUser.id }, tokens);
-
       return {
         status_code: HttpStatus.CREATED,
         detail: { ...createdUser, ...tokens },
@@ -124,7 +129,7 @@ export class AuthService {
     }
   }
 
-  async login(userData: LoginUser) {
+  async login(userData: LoginUser): Promise<generalResponse<Partial<User>>> {
     try {
       const userService = this.moduleRef.get(UsersService, { strict: false });
 
@@ -156,11 +161,11 @@ export class AuthService {
     }
   }
 
-  async logout(token: ITokens) {
+  async logout(token: ITokens): Promise<generalResponse<string>> {
     try {
       // get tokens from headers
       const modifiedToken = token.toString().split(' ');
-      const user = await this.authRepo.remove(modifiedToken[1]);
+      await this.authRepo.remove(modifiedToken[1]);
 
       return {
         status_code: HttpStatus.OK,
@@ -175,7 +180,47 @@ export class AuthService {
     }
   }
 
-  async authMe() {
-    
+  async authMe(token: ITokens): Promise<generalResponse<Partial<User>>> {
+    try {
+      // get tokens from headers
+      const modifiedToken = token.toString().split(' ');
+      const { password, ...user } = await this.authRepo.findOneByToken(
+        modifiedToken[1],
+      );
+      return {
+        status_code: HttpStatus.OK,
+        detail: user,
+        result: 'auth me',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async refreshTokens(userId: string): Promise<generalResponse<string>> {
+    try {
+      const userService = this.moduleRef.get(UsersService, { strict: false });
+
+      const { detail } = await userService.findOne(userId);
+      if (!detail)
+        throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
+
+      const tokens = await this.generateTokens(detail);
+      await this.updateTokens({ id: detail.id }, tokens);
+
+      return {
+        status_code: HttpStatus.OK,
+        detail: 'tokens updated',
+        result: 'refresh tokens success',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

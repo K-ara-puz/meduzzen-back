@@ -11,6 +11,7 @@ import { generalResponse } from '../interfaces/generalResponse.interface';
 import { AuthService } from '../auth/auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { LoginUser } from '../auth/dto/loginUser.dto';
+import { ITokens } from '../interfaces/Tokens.interface';
 
 @Injectable()
 export class UsersService {
@@ -67,10 +68,10 @@ export class UsersService {
     }
   }
 
-  async findOneByEmail(email: string) {
+  async findOneByEmail(email: string): Promise<User> {
     return await this.userRepo.findOneByEmail(email);
   }
-
+  
   async create(user: CreateUserDto): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'create user service' });
     try {

@@ -6,7 +6,7 @@ export class Auth {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, {eager: true})
   @JoinColumn()
   userId: User
   

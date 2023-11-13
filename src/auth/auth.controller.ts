@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Put, Req, Request } from '@nestjs/common';
+import { Body, Controller, Post, Get, Put, Req, Request, Param } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -11,8 +11,8 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Get('/me')
-  async authMe() {
-    return this.authService.authMe();
+  async authMe(@Req() req: Request): Promise<generalResponse<Partial<User>>> {
+    return this.authService.authMe(req.headers['authorization']);
   }
 
   @Post('/registration')
@@ -30,7 +30,12 @@ export class AuthController {
   }
 
   @Put('/logout')
-  async logout(@Req() req: Request) {
+  async logout(@Req() req: Request): Promise<generalResponse<string>> {
     return await this.authService.logout(req.headers['authorization']);
+  }
+
+  @Post('/refreshToken/:id')
+  async refreshToken(@Param('id') userId: string,): Promise<generalResponse<string>> {
+    return await this.authService.refreshTokens(userId);
   }
 }

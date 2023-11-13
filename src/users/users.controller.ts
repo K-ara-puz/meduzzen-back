@@ -38,11 +38,6 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
-  @Post()
-  async create(@Body() user: CreateUserDto): Promise<generalResponse<Partial<User>>> {
-    return this.usersService.create(user);
-  }
-
   @Put(':id')
   @ApiParam({ name: "id", required: true, description: "user identifier" })
   @ApiBody({ type: [UpdateUserDto] })

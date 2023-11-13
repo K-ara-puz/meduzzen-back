@@ -20,19 +20,30 @@ export default class AuthRepo {
     return await this.authRepository.save(res);
   }
 
+  async findOneByToken(token: string): Promise<User> {
+    const auth = await this.authRepository.findOne({
+      where: [{ accessToken: token }, { refreshToken: token }],
+      select: {userId: {id: true}}
+    });
+    return auth.userId;
+  }
   async update(userId: Partial<User>, tokens: ITokens) {
     let res = {
       accessToken: tokens.accessToken,
       actionToken: tokens.actionToken,
       refreshToken: tokens.refreshToken,
     };
-    const auth = await this.authRepository.findOne({ where: {userId: { id: userId.id }} })
-    return await this.authRepository.save({id: auth.id, ...res});
+    const auth = await this.authRepository.findOne({
+      where: { userId: { id: userId.id } },
+    });
+    return await this.authRepository.save({ id: auth.id, ...res });
   }
 
   async remove(token: string) {
-    const auth = await this.authRepository.findOne({ where: {accessToken: token} });
-    if (!auth) throw new Error('user is not exist')
-    return await this.authRepository.delete({id: auth.id});
+    const auth = await this.authRepository.findOne({
+      where: [{ accessToken: token }, { refreshToken: token }],
+    });
+    if (!auth) throw new Error('user is not exist');
+    return await this.authRepository.delete({ id: auth.id });
   }
 }
