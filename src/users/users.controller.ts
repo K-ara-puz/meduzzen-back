@@ -5,24 +5,24 @@ import {
   Put,
   Delete,
   Param,
-  Post,
   Query,
   DefaultValuePipe,
   ParseIntPipe,
-  UseFilters,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { generalResponse } from 'src/interfaces/generalResponse.interface';
-import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ApiTags, ApiOperation, ApiParam,ApiBody } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
+import { MyAuthGuard } from '../auth/auth.guard';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(MyAuthGuard)
   @Get()
   @ApiOperation({ summary: "Get all users" })
   async findAll(
@@ -33,11 +33,13 @@ export class UsersController {
     return this.usersService.paginate({ page, limit });
   }
 
+  @UseGuards(MyAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<generalResponse<Partial<User>>> {
     return this.usersService.findOne(id);
   }
 
+  @UseGuards(MyAuthGuard)
   @Put(':id')
   @ApiParam({ name: "id", required: true, description: "user identifier" })
   @ApiBody({ type: [UpdateUserDto] })
@@ -47,7 +49,8 @@ export class UsersController {
   ): Promise<generalResponse<Partial<User>>> {
     return this.usersService.update(id, user);
   }
-
+  
+  @UseGuards(MyAuthGuard)
   @Delete(':id')
   async delete(@Param('id') id: string): Promise<generalResponse<Partial<User>>> {
     return this.usersService.delete(id);
