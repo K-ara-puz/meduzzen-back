@@ -20,13 +20,6 @@ export default class AuthRepo {
     return await this.authRepository.save(res);
   }
 
-  async findOneByToken(token: string): Promise<User> {
-    const auth = await this.authRepository.findOne({
-      where: [{ accessToken: token }, { refreshToken: token }],
-      select: {userId: {id: true}}
-    });
-    return auth.userId;
-  }
   async update(userId: Partial<User>, tokens: ITokens) {
     let res = {
       accessToken: tokens.accessToken,

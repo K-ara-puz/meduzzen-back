@@ -10,6 +10,7 @@ import AuthRepo from './auth.repository';
 import { User } from '../entities/user.entity';
 import { ITokens } from '../interfaces/Tokens.interface';
 import { LoginUser } from './dto/loginUser.dto';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable()
 export class AuthService {
@@ -182,14 +183,17 @@ export class AuthService {
 
   async authMe(token: ITokens): Promise<generalResponse<Partial<User>>> {
     try {
-      // get tokens from headers
       const modifiedToken = token.toString().split(' ');
-      const { password, ...user } = await this.authRepo.findOneByToken(
-        modifiedToken[1],
-      );
+      const userFromToken = jwtDecode(modifiedToken[1]);
+      const userService = this.moduleRef.get(UsersService, { strict: false });
+      const user = await userService.findOneByEmail(userFromToken['email']);
+      if (!user) {
+        throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
+      }
+      const {password, ...userForBack} = user;
       return {
         status_code: HttpStatus.OK,
-        detail: user,
+        detail: userForBack,
         result: 'auth me',
       };
     } catch (error) {
