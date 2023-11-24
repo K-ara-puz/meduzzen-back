@@ -9,6 +9,9 @@ import { MyLogger } from '../logger/logger.service';
 import UserRepo from './users.repository';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { AuthService } from '../auth/auth.service';
+import { ModuleRef } from '@nestjs/core';
+import { LoginUser } from '../auth/dto/loginUser.dto';
+import { ITokens } from '../interfaces/Tokens.interface';
 
 @Injectable()
 export class UsersService {
@@ -16,7 +19,8 @@ export class UsersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private userRepo: UserRepo,
-    private authService: AuthService,
+    private moduleRef: ModuleRef,
+
   ) {}
 
   private logger = new MyLogger(UsersService.name);
@@ -48,7 +52,7 @@ export class UsersService {
     }
   }
 
-  async findOne(id: number): Promise<generalResponse<Partial<User>>> {
+  async findOne(id: string): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'find one user service' });
     try {
       let user = await this.userRepo.findOne(id);
@@ -64,15 +68,14 @@ export class UsersService {
     }
   }
 
+  async findOneByEmail(email: string): Promise<User> {
+    return await this.userRepo.findOneByEmail(email);
+  }
+  
   async create(user: CreateUserDto): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'create user service' });
     try {
-      const hashPass = await this.authService.getHashPass(user.password);
-      let modifiedUser = {
-        ...user,
-        password: hashPass,
-      };
-      const savedUser: CreateUserDto = await this.userRepo.create(modifiedUser);
+      const savedUser: CreateUserDto = await this.userRepo.create(user);
       let { password, ...res } = savedUser;
       return {
         status_code: HttpStatus.OK,
@@ -84,10 +87,12 @@ export class UsersService {
     }
   }
 
-  async update(id: number, user: UpdateUserDto): Promise<generalResponse<Partial<User>>> {
+  async update(id: string, user: UpdateUserDto): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'update user service' });
     try {
-      const hashPass = await this.authService.getHashPass(user.password);
+      const authService = this.moduleRef.get(AuthService, { strict: false });
+
+      const hashPass = await authService.getHashPass(user.password);
 
       let modifiedUser = {
         ...user,
@@ -106,7 +111,7 @@ export class UsersService {
     }
   }
 
-  async delete(id: number): Promise<generalResponse<Partial<User>>> {
+  async delete(id: string): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'delete user service' });
     try {
       const {password, ...user} = await this.userRepo.findOne(id);

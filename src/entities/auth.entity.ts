@@ -3,10 +3,10 @@ import { User } from './user.entity';
 
 @Entity()
 export class Auth {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn("uuid")
+  id: string;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, {eager: true})
   @JoinColumn()
   userId: User
   
@@ -19,12 +19,12 @@ export class Auth {
   @Column()
   refreshToken: string;
 
-  @Column()
+  @Column({ default: () => "NOW()" })
   created_at: Date;
 
-  @Column()
+  @Column({ default: () => "NOW()" })
   updated_at: Date;
   
-  @Column()
+  @Column({ default: () => "NOW()" })
   deleted_at: Date;
 }

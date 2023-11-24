@@ -1,5 +1,5 @@
-import { DataSource, DataSourceOptions } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
+import { ConfigService } from "@nestjs/config";
+import { DataSource, DataSourceOptions } from "typeorm";
 import 'dotenv/config';
 
 let configService = new ConfigService();

@@ -4,6 +4,7 @@ import { MyLogger } from './logger/logger.service';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './utils/httpException.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: true });
@@ -11,6 +12,7 @@ async function bootstrap() {
   app.useLogger(await app.resolve(MyLogger));
   app.useGlobalPipes(new ValidationPipe());
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.use(cookieParser());
   
   const config = new DocumentBuilder()
     .setTitle('Meduzzen-back')
