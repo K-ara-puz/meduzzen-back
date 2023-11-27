@@ -35,9 +35,9 @@ export class AuthController {
   async logout(@Req() req: Request): Promise<generalResponse<string>> {
     return await this.authService.logout(req.headers['authorization']);
   }
-
-  @Post('/refreshToken/:id')
-  async refreshToken(@Param('id') userId: string,): Promise<generalResponse<string>> {
-    return await this.authService.refreshTokens(userId);
+  
+  @Post('/refreshToken')
+  async refreshToken(@Body() token: string): Promise<generalResponse<Partial<ITokens>>> {
+    return await this.authService.refreshTokens(token);
   }
 }

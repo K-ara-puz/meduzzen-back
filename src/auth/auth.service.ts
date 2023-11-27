@@ -22,7 +22,7 @@ export class AuthService {
 
   private async hashPass(pass: string): Promise<string> {
     try {
-      return await bcrypt.hash(pass, 10);
+      return bcrypt.hash(pass, 10);
     } catch (error) {
       throw new HttpException(
         error,
@@ -40,12 +40,12 @@ export class AuthService {
       const accessToken: string = jwt.sign(
         payload,
         this.configService.get('JWT_ACCESS_SECRET'),
-        { expiresIn: '1d' },
+        { expiresIn: '30m' },
       );
       const refreshToken: string = jwt.sign(
         payload,
         this.configService.get('JWT_REFRESH_SECRET'),
-        { expiresIn: '7d' },
+        { expiresIn: '1d' },
       );
       return { accessToken, actionToken, refreshToken };
     } catch (error) {
@@ -60,7 +60,7 @@ export class AuthService {
     tokens: ITokens,
   ): Promise<Partial<User>> {
     try {
-      return await this.authRepo.create(userId, tokens);
+      return this.authRepo.create(userId, tokens);
     } catch (error) {
       throw new HttpException(
         error,
@@ -73,7 +73,7 @@ export class AuthService {
     tokens: ITokens,
   ): Promise<Partial<User>> {
     try {
-      return await this.authRepo.update(userId, tokens);
+      return this.authRepo.update(userId, tokens);
     } catch (error) {
       throw new HttpException(
         error,
@@ -95,7 +95,7 @@ export class AuthService {
 
   async getHashPass(pass: string): Promise<string> {
     try {
-      return await this.hashPass(pass);
+      return this.hashPass(pass);
     } catch (error) {
       throw new HttpException(
         error,
@@ -116,7 +116,7 @@ export class AuthService {
 
       let { detail: createdUser } = await userService.create(modifiedUser);
       const tokens = await this.generateTokens({ ...createdUser });
-      await this.saveTokens({ id: createdUser.id }, tokens);
+      await this.saveTokens({ id: createdUser['id'] }, tokens);
       return {
         status_code: HttpStatus.CREATED,
         detail: { ...createdUser, ...tokens },
@@ -137,18 +137,15 @@ export class AuthService {
       const user = await userService.findOneByEmail(userData.email);
       if (!user)
         throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
-
       const isPassEquals = await this.comparePass(
         userData.password,
         user.password,
       );
       if (!isPassEquals)
         throw new HttpException('incorrect pass', HttpStatus.BAD_REQUEST);
-
       const tokens = await this.generateTokens(userData);
-      const savedTokens = await this.updateTokens({ id: user.id }, tokens);
+      const savedTokens = await this.updateTokens({ id: user['id'] }, tokens);
       const { password, ...userForBack } = user;
-
       return {
         status_code: HttpStatus.OK,
         detail: { ...userForBack, ...savedTokens },
@@ -163,11 +160,15 @@ export class AuthService {
   }
 
   async logout(token: ITokens): Promise<generalResponse<string>> {
+    const userService = this.moduleRef.get(UsersService, { strict: false });
+    const modifiedToken = token.toString().split(' ');
+    const userFromToken = jwtDecode(modifiedToken[1]);
     try {
-      // get tokens from headers
-      const modifiedToken = token.toString().split(' ');
-      await this.authRepo.remove(modifiedToken[1]);
-
+      const user = await userService.findOneByEmail(userFromToken['email']);
+      if (!user) {
+        throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
+      }
+      await this.authRepo.remove(user.id);
       return {
         status_code: HttpStatus.OK,
         detail: 'logout success',
@@ -190,7 +191,7 @@ export class AuthService {
       if (!user) {
         throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
       }
-      const {password, ...userForBack} = user;
+      const { password, ...userForBack } = user;
       return {
         status_code: HttpStatus.OK,
         detail: userForBack,
@@ -204,20 +205,22 @@ export class AuthService {
     }
   }
 
-  async refreshTokens(userId: string): Promise<generalResponse<string>> {
+  async refreshTokens(
+    token: string,
+  ): Promise<generalResponse<Partial<ITokens>>> {
     try {
       const userService = this.moduleRef.get(UsersService, { strict: false });
-
-      const { detail } = await userService.findOne(userId);
-      if (!detail)
+      const userData = jwt.decode(token['token']);
+      const user = await userService.findOneByEmail(userData['email']);
+      if (!user) {
         throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
-
-      const tokens = await this.generateTokens(detail);
-      await this.updateTokens({ id: detail.id }, tokens);
+      }
+      const tokens = await this.generateTokens({ ...user });
+      await this.updateTokens({ id: user['id'] }, tokens);
 
       return {
         status_code: HttpStatus.OK,
-        detail: 'tokens updated',
+        detail: tokens,
         result: 'refresh tokens success',
       };
     } catch (error) {

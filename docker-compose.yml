@@ -11,12 +11,15 @@ services:
     depends_on:
       - postgres
   postgres:
-    image: postgres:12
-    container_name: postgres
+    image: postgres:latest
+    container_name: postgres_db
     env_file:
       - .env
     environment:
       PG_DATA: /var/lib/postgresql/data
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: meduzzen-back
+      POSTGRES_USER: postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
