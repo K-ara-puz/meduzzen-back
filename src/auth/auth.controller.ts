@@ -11,8 +11,8 @@ import { MyAuthGuard } from './auth.guard';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @UseGuards(MyAuthGuard)
   @Get('/me')
+  @UseGuards(MyAuthGuard)
   async authMe(@Req() req: Request): Promise<generalResponse<Partial<User>>> {
     return await this.authService.authMe(req.headers['authorization']);
   }

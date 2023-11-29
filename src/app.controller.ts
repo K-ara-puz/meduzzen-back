@@ -11,8 +11,8 @@ export class AppController {
   constructor(private readonly appService: AppService) {}
   private readonly logger = new MyLogger(AppController.name);
 
-  @UseGuards(MyAuthGuard)
   @Get()
+  @UseGuards(MyAuthGuard)
   async healthChecker(): Promise<generalResponse<string>> {
     this.logger.toLog({ message: 'App Controller health check' });
     return this.appService.healthCheck();

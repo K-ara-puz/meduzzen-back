@@ -22,9 +22,9 @@ import { MyAuthGuard } from '../auth/auth.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(MyAuthGuard)
   @Get()
   @ApiOperation({ summary: "Get all users" })
+  @UseGuards(MyAuthGuard)
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
@@ -33,14 +33,14 @@ export class UsersController {
     return this.usersService.paginate({ page, limit });
   }
 
-  @UseGuards(MyAuthGuard)
   @Get(':id')
+  @UseGuards(MyAuthGuard)
   async findOne(@Param('id') id: string): Promise<generalResponse<Partial<User>>> {
     return this.usersService.findOne(id);
   }
 
-  @UseGuards(MyAuthGuard)
   @Put(':id')
+  @UseGuards(MyAuthGuard)
   @ApiParam({ name: "id", required: true, description: "user identifier" })
   @ApiBody({ type: [UpdateUserDto] })
   async update(
@@ -50,8 +50,8 @@ export class UsersController {
     return this.usersService.update(id, user);
   }
   
-  @UseGuards(MyAuthGuard)
   @Delete(':id')
+  @UseGuards(MyAuthGuard)
   async delete(@Param('id') id: string): Promise<generalResponse<Partial<User>>> {
     return this.usersService.delete(id);
   }
