@@ -3,7 +3,6 @@ import { AppService } from './app.service';
 import { generalResponse } from './interfaces/generalResponse.interface';
 import { MyLogger } from './logger/logger.service';
 import { ApiTags } from '@nestjs/swagger';
-import { MyAuthGuard } from './auth/auth.guard';
 
 @ApiTags('Health Check')
 @Controller()
@@ -12,7 +11,6 @@ export class AppController {
   private readonly logger = new MyLogger(AppController.name);
 
   @Get()
-  @UseGuards(MyAuthGuard)
   async healthChecker(): Promise<generalResponse<string>> {
     this.logger.toLog({ message: 'App Controller health check' });
     return this.appService.healthCheck();

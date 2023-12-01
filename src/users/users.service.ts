@@ -10,8 +10,7 @@ import UserRepo from './users.repository';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { AuthService } from '../auth/auth.service';
 import { ModuleRef } from '@nestjs/core';
-import { LoginUser } from '../auth/dto/loginUser.dto';
-import { ITokens } from '../interfaces/Tokens.interface';
+import { UploadService } from 'src/upload/upload.service';
 
 @Injectable()
 export class UsersService {
@@ -20,7 +19,7 @@ export class UsersService {
     private userRepository: Repository<User>,
     private userRepo: UserRepo,
     private moduleRef: ModuleRef,
-
+    private readonly uploadService: UploadService
   ) {}
 
   private logger = new MyLogger(UsersService.name);
@@ -92,15 +91,9 @@ export class UsersService {
     try {
       const authService = this.moduleRef.get(AuthService, { strict: false });
 
-      const hashPass = await authService.getHashPass(user.password);
-
-      let modifiedUser = {
-        ...user,
-        password: hashPass,
-      };
       let foundedUser = await this.userRepo.findOne(id);
       if (!foundedUser) throw new HttpException('user not exist', HttpStatus.NOT_FOUND);
-      const {password, ...res} = await this.userRepo.update(id, modifiedUser);
+      const {password, ...res} = await this.userRepo.update(id, user);
       return {
         status_code: HttpStatus.OK,
         detail: res,
@@ -109,6 +102,12 @@ export class UsersService {
     } catch (error) {
       throw new HttpException(error, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async changeUserAvatar(file: Express.Multer.File, userId: string) {
+    await this.uploadService.upload(file.originalname, file.buffer);
+    const {password, ...result} = await this.userRepo.update(userId, {avatar: file.originalname});
+    return result
   }
 
   async delete(id: string): Promise<generalResponse<Partial<User>>> {
