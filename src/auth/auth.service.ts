@@ -143,7 +143,8 @@ export class AuthService {
       );
       if (!isPassEquals)
         throw new HttpException('incorrect pass', HttpStatus.BAD_REQUEST);
-      const tokens = await this.generateTokens(userData);
+      const userId = user.id;
+      const tokens = await this.generateTokens({...userData, id: userId});
       const savedTokens = await this.updateTokens({ id: user['id'] }, tokens);
       const { password, ...userForBack } = user;
       return {

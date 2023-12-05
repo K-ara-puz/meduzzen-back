@@ -20,6 +20,8 @@ import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
 import { MyAuthGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UserGuard } from './user.guard';
+import { PaginatedUsers } from '../interfaces/paginatedUsers.interface';
 
 @ApiTags('Users')
 @Controller('users')
@@ -34,7 +36,7 @@ export class UsersController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-  ): Promise<generalResponse<User[]>> {
+  ): Promise<generalResponse<PaginatedUsers>> {
     limit = limit > 100 ? 100 : limit;
     return this.usersService.paginate({ page, limit });
   }
@@ -51,6 +53,7 @@ export class UsersController {
   @ApiParam({ name: 'id', required: true, description: 'user identifier' })
   @ApiBody({ type: [UpdateUserDto] })
   @UseGuards(MyAuthGuard)
+  @UseGuards(UserGuard)
   async update(
     @Param('id') id: string,
     @Body() user: UpdateUserDto,
@@ -61,6 +64,7 @@ export class UsersController {
   @Post('changeAvatar/:id')
   @UseInterceptors(FileInterceptor('file'))
   @UseGuards(MyAuthGuard)
+  @UseGuards(UserGuard)
   async uploadFile(@Param('id') userId: string, 
   @UploadedFile() file: Express.Multer.File,
   ) {
@@ -69,6 +73,7 @@ export class UsersController {
 
   @Delete(':id')
   @UseGuards(MyAuthGuard)
+  @UseGuards(UserGuard)
   async delete(
     @Param('id') id: string,
   ): Promise<generalResponse<Partial<User>>> {

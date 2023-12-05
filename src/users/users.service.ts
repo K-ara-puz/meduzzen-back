@@ -11,6 +11,8 @@ import { generalResponse } from '../interfaces/generalResponse.interface';
 import { AuthService } from '../auth/auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { UploadService } from 'src/upload/upload.service';
+import AuthRepo from '../auth/auth.repository';
+import { PaginatedUsers } from '../interfaces/paginatedUsers.interface';
 
 @Injectable()
 export class UsersService {
@@ -24,12 +26,12 @@ export class UsersService {
 
   private logger = new MyLogger(UsersService.name);
 
-  async paginate(options: IPaginationOptions): Promise<generalResponse<User[]>> {
+  async paginate(options: IPaginationOptions): Promise<generalResponse<PaginatedUsers>> {
     try {
       const paginatedUsers = await paginate<User>(this.userRepository, options);
       return {
         status_code: HttpStatus.OK,
-        detail: paginatedUsers.items,
+        detail: {users: paginatedUsers.items, totalItemsCount: paginatedUsers.meta.totalItems},
         result: 'get paginated users',
       };
     } catch (error) {
@@ -86,14 +88,14 @@ export class UsersService {
     }
   }
 
-  async update(id: string, user: UpdateUserDto): Promise<generalResponse<Partial<User>>> {
+  async update(id: string, user): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'update user service' });
     try {
-      const authService = this.moduleRef.get(AuthService, { strict: false });
+      const { firstName, lastName } = user;
 
       let foundedUser = await this.userRepo.findOne(id);
       if (!foundedUser) throw new HttpException('user not exist', HttpStatus.NOT_FOUND);
-      const {password, ...res} = await this.userRepo.update(id, user);
+      const {password, ...res} = await this.userRepo.update(id, {firstName, lastName});
       return {
         status_code: HttpStatus.OK,
         detail: res,
@@ -107,7 +109,11 @@ export class UsersService {
   async changeUserAvatar(file: Express.Multer.File, userId: string) {
     await this.uploadService.upload(file.originalname, file.buffer);
     const {password, ...result} = await this.userRepo.update(userId, {avatar: file.originalname});
-    return result
+    return {
+      status_code: HttpStatus.OK,
+      detail: result,
+      result: 'avatar was updated',
+    }
   }
 
   async delete(id: string): Promise<generalResponse<Partial<User>>> {
@@ -115,6 +121,8 @@ export class UsersService {
     try {
       const {password, ...user} = await this.userRepo.findOne(id);
       if (!user) throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
+      const authRepo = this.moduleRef.get(AuthRepo, { strict: false });
+      await authRepo.remove(user.id);
       await this.userRepo.delete(id);
       return {
         status_code: HttpStatus.OK,
