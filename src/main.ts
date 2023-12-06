@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { MyLogger } from './logger/logger.service';
 import { ValidationPipe } from '@nestjs/common';
-import { HttpExceptionFilter } from './utils/httpException.service';
+import { HttpExceptionFilter } from './utils/httpexception.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 

@@ -17,7 +17,7 @@ export default class AuthRepo {
       refreshToken: tokens.refreshToken,
       actionToken: tokens.actionToken,
     };
-    return await this.authRepository.save(res);
+    return this.authRepository.save(res);
   }
 
   async update(userId: Partial<User>, tokens: ITokens) {
@@ -29,14 +29,18 @@ export default class AuthRepo {
     const auth = await this.authRepository.findOne({
       where: { userId: { id: userId.id } },
     });
-    return await this.authRepository.save({ id: auth.id, ...res });
+    if (!auth) {
+      const {accessToken, actionToken, refreshToken, id} = await this.create(userId, tokens)
+      return {accessToken, actionToken, refreshToken, id}
+    }
+    return this.authRepository.save({ id: auth.id, ...res });
   }
 
-  async remove(token: string) {
+  async remove(userId: string) {
     const auth = await this.authRepository.findOne({
-      where: [{ accessToken: token }, { refreshToken: token }],
+      where: { userId: { id: userId } },
     });
     if (!auth) throw new Error('user is not exist');
-    return await this.authRepository.delete({ id: auth.id });
+    return this.authRepository.delete({ id: auth.id });
   }
 }

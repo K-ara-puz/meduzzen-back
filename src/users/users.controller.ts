@@ -9,50 +9,74 @@ import {
   DefaultValuePipe,
   ParseIntPipe,
   UseGuards,
+  UseInterceptors,
+  Post,
+  UploadedFile,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { generalResponse } from 'src/interfaces/generalResponse.interface';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags, ApiOperation, ApiParam,ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
 import { MyAuthGuard } from '../auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { UserGuard } from './user.guard';
+import { PaginatedUsers } from '../interfaces/paginatedUsers.interface';
 
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+  ) {}
 
-  @UseGuards(MyAuthGuard)
   @Get()
-  @ApiOperation({ summary: "Get all users" })
+  @ApiOperation({ summary: 'Get all users' })
+  @UseGuards(MyAuthGuard)
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-  ): Promise<generalResponse<User[]>> {
+  ): Promise<generalResponse<PaginatedUsers>> {
     limit = limit > 100 ? 100 : limit;
     return this.usersService.paginate({ page, limit });
   }
 
-  @UseGuards(MyAuthGuard)
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<generalResponse<Partial<User>>> {
+  @UseGuards(MyAuthGuard)
+  async findOne(
+    @Param('id') id: string,
+  ): Promise<generalResponse<Partial<User>>> {
     return this.usersService.findOne(id);
   }
 
-  @UseGuards(MyAuthGuard)
   @Put(':id')
-  @ApiParam({ name: "id", required: true, description: "user identifier" })
+  @ApiParam({ name: 'id', required: true, description: 'user identifier' })
   @ApiBody({ type: [UpdateUserDto] })
+  @UseGuards(MyAuthGuard)
+  @UseGuards(UserGuard)
   async update(
     @Param('id') id: string,
     @Body() user: UpdateUserDto,
   ): Promise<generalResponse<Partial<User>>> {
     return this.usersService.update(id, user);
   }
-  
+
+  @Post('changeAvatar/:id')
+  @UseInterceptors(FileInterceptor('file'))
   @UseGuards(MyAuthGuard)
+  @UseGuards(UserGuard)
+  async uploadFile(@Param('id') userId: string, 
+  @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.usersService.changeUserAvatar(file, userId);
+  }
+
   @Delete(':id')
-  async delete(@Param('id') id: string): Promise<generalResponse<Partial<User>>> {
+  @UseGuards(MyAuthGuard)
+  @UseGuards(UserGuard)
+  async delete(
+    @Param('id') id: string,
+  ): Promise<generalResponse<Partial<User>>> {
     return this.usersService.delete(id);
   }
 }
