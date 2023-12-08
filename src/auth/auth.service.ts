@@ -10,7 +10,7 @@ import AuthRepo from './auth.repository';
 import { User } from '../entities/user.entity';
 import { ITokens } from '../interfaces/Tokens.interface';
 import { LoginUser } from './dto/loginUser.dto';
-import { jwtDecode } from 'jwt-decode';
+import { getUserFromToken } from '../utils/getUserIdFromToken';
 
 @Injectable()
 export class AuthService {
@@ -162,8 +162,7 @@ export class AuthService {
 
   async logout(token: ITokens): Promise<generalResponse<string>> {
     const userService = this.moduleRef.get(UsersService, { strict: false });
-    const modifiedToken = token.toString().split(' ');
-    const userFromToken = jwtDecode(modifiedToken[1]);
+    const userFromToken = getUserFromToken(token);
     try {
       const user = await userService.findOneByEmail(userFromToken['email']);
       if (!user) {
@@ -185,8 +184,7 @@ export class AuthService {
 
   async authMe(token: ITokens): Promise<generalResponse<Partial<User>>> {
     try {
-      const modifiedToken = token.toString().split(' ');
-      const userFromToken = jwtDecode(modifiedToken[1]);
+      const userFromToken = getUserFromToken(token);
       const userService = this.moduleRef.get(UsersService, { strict: false });
       const user = await userService.findOneByEmail(userFromToken['email']);
       if (!user) {

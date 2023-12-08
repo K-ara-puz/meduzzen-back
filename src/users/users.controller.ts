@@ -21,7 +21,7 @@ import { User } from '../entities/user.entity';
 import { MyAuthGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserGuard } from './user.guard';
-import { PaginatedUsers } from '../interfaces/paginatedUsers.interface';
+import { PaginatedUsers } from '../interfaces/PaginatedUsers.interface';
 
 @ApiTags('Users')
 @Controller('users')
