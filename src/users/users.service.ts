@@ -12,7 +12,7 @@ import { AuthService } from '../auth/auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { UploadService } from 'src/upload/upload.service';
 import AuthRepo from '../auth/auth.repository';
-import { PaginatedUsers } from '../interfaces/paginatedUsers.interface';
+import { PaginatedUsers } from '../interfaces/PaginatedUsers.interface';
 
 @Injectable()
 export class UsersService {

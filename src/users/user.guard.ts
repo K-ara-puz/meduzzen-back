@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { jwtDecode } from "jwt-decode";
-import { User } from "../entities/user.entity";
+import { getUserFromToken } from "../utils/getUserIdFromToken";
 
 @Injectable()
 export class UserGuard {
@@ -9,14 +8,13 @@ export class UserGuard {
 
   async canActivate(context) {
     const request = context.switchToHttp().getRequest();
-    const token = request.headers.authorization.split(' ')[1];
-    const userFromToken : Partial<User> = jwtDecode(token);
+    const userFromToken = getUserFromToken(request.headers['authorization']);
     const tempVar = request.originalUrl.split('/');
     const userToEditId = tempVar[tempVar.length - 1];
 
     if (userFromToken.id != userToEditId) 
       throw new HttpException(
-        "You can edit only your profile",
+        "FORBIDDEN RESOURCE",
         HttpStatus.FORBIDDEN,
       );
     

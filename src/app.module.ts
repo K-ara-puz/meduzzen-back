@@ -8,6 +8,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { dataSourceOptions } from './db/db.config';
 import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
+import { CompaniesModule } from './companies/companies.module';
+import { CompaniesMembersModule } from './companies-members/companies-members.module';
 
 @Module({
   imports: [
@@ -15,7 +17,9 @@ import { UploadModule } from './upload/upload.module';
     TypeOrmModule.forRoot(dataSourceOptions),
     UsersModule,
     AuthModule,
-    UploadModule
+    UploadModule,
+    CompaniesModule,
+    CompaniesMembersModule
   ],
   controllers: [AppController],
   providers: [AppService, MyLogger],
