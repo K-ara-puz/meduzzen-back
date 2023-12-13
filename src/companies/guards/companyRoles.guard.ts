@@ -14,7 +14,7 @@ export class CompanyRolesGuard {
     let companyId: string;
     let userId: string;
     const roles = this.reflector.get(Roles, context.getHandler());
-    if (!roles) return true;
+    if (!roles) return false;
     try {
       const request = context.switchToHttp().getRequest();
       const userFromToken = getUserFromToken(request.headers.authorization);
