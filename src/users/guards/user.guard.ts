@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
-import { getUserFromToken } from "../utils/getUserIdFromToken";
+import { getUserFromToken } from "../../utils/getUserIdFromToken";
 
 @Injectable()
 export class UserGuard {

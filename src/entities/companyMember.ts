@@ -4,7 +4,6 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   ManyToOne,
-  OneToOne,
 } from 'typeorm';
 import { User } from './user.entity';
 import { Company } from './company';
@@ -14,18 +13,13 @@ export class CompanyMember {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User, (user) => user, { eager: true })
   @JoinColumn()
-  userId: string;
+  user: Partial<User>;
 
-  @OneToOne(() => Company, {
-    eager: true,
-    cascade: true,
-    onDelete: 'SET NULL',
-    orphanedRowAction: 'delete',
-  })
+  @ManyToOne(() => Company, { eager: true })
   @JoinColumn()
-  companyId: string;
+  company: Partial<Company>;
 
   @Column()
   role: string;

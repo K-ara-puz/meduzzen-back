@@ -9,5 +9,6 @@ import CompanyMembersRepo from './company-members.repository';
   imports: [TypeOrmModule.forFeature([CompanyMember])],
   controllers: [CompaniesMembersController],
   providers: [CompaniesMembersService, CompanyMembersRepo],
+  exports: [CompaniesMembersService, CompanyMembersRepo]
 })
 export class CompaniesMembersModule {}

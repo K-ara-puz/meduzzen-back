@@ -17,5 +17,6 @@ import { CompanyMember } from '../entities/companyMember';
     CompanyMembersRepo,
     CompaniesMembersService,
   ],
+  exports: [CompanyRepo]
 })
 export class CompaniesModule {}

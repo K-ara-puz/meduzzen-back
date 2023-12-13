@@ -20,8 +20,8 @@ import { ApiTags, ApiOperation, ApiParam, ApiBody } from '@nestjs/swagger';
 import { User } from '../entities/user.entity';
 import { MyAuthGuard } from '../auth/auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UserGuard } from './user.guard';
-import { PaginatedUsers } from '../interfaces/PaginatedUsers.interface';
+import { UserGuard } from './guards/user.guard';
+import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
 
 @ApiTags('Users')
 @Controller('users')
@@ -36,7 +36,7 @@ export class UsersController {
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-  ): Promise<generalResponse<PaginatedUsers>> {
+  ): Promise<generalResponse<PaginatedItems<User[]>>> {
     limit = limit > 100 ? 100 : limit;
     return this.usersService.paginate({ page, limit });
   }

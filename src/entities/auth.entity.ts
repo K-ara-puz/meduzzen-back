@@ -6,7 +6,12 @@ export class Auth {
   @PrimaryGeneratedColumn("uuid")
   id: string;
 
-  @OneToOne(() => User, {eager: true})
+  @OneToOne(() => User, {
+    eager: true,
+    cascade: true,
+    onDelete: 'SET NULL',
+    orphanedRowAction: 'delete',
+  })
   @JoinColumn()
   userId: User
   
