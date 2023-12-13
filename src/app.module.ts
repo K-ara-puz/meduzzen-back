@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { UploadModule } from './upload/upload.module';
 import { CompaniesModule } from './companies/companies.module';
 import { CompaniesMembersModule } from './companies-members/companies-members.module';
+import { CompaniesInvitesModule } from './companies_invites/companies_invites.module';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { CompaniesMembersModule } from './companies-members/companies-members.mo
     AuthModule,
     UploadModule,
     CompaniesModule,
-    CompaniesMembersModule
+    CompaniesMembersModule,
+    CompaniesInvitesModule
   ],
   controllers: [AppController],
   providers: [AppService, MyLogger],

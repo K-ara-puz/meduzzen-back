@@ -12,7 +12,7 @@ import { AuthService } from '../auth/auth.service';
 import { ModuleRef } from '@nestjs/core';
 import { UploadService } from 'src/upload/upload.service';
 import AuthRepo from '../auth/auth.repository';
-import { PaginatedUsers } from '../interfaces/PaginatedUsers.interface';
+import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
 
 @Injectable()
 export class UsersService {
@@ -26,12 +26,12 @@ export class UsersService {
 
   private logger = new MyLogger(UsersService.name);
 
-  async paginate(options: IPaginationOptions): Promise<generalResponse<PaginatedUsers>> {
+  async paginate(options: IPaginationOptions): Promise<generalResponse<PaginatedItems<User[]>>> {
     try {
       const paginatedUsers = await paginate<User>(this.userRepository, options);
       return {
         status_code: HttpStatus.OK,
-        detail: {users: paginatedUsers.items, totalItemsCount: paginatedUsers.meta.totalItems},
+        detail: {items: paginatedUsers.items, totalItemsCount: paginatedUsers.meta.totalItems},
         result: 'get paginated users',
       };
     } catch (error) {
