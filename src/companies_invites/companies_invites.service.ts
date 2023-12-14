@@ -5,6 +5,11 @@ import { generalResponse } from '../interfaces/generalResponse.interface';
 import { CompanyInvite } from '../entities/companyInvite';
 import { InviteUserToCompany } from './dto/InviteUserToCompany.dto';
 import { RequestInviteToCompany } from './dto/RequestInviteToCompany.dto';
+import {
+  CompanyInviteTypes,
+  CompanyInvitesStatuses,
+  CompanyRoles,
+} from '../utils/constants';
 
 @Injectable()
 export class CompaniesInvitesService {
@@ -13,17 +18,19 @@ export class CompaniesInvitesService {
     private companyMembersRepo: CompanyMembersRepo,
   ) {}
 
-  async getAllUsersRequestsOrInvitesByUserId(userId: string, type: string): Promise<generalResponse<CompanyInvite[]>> {
+  async getAllUsersRequestsOrInvitesByUserId(
+    userId: string,
+    type: string,
+  ): Promise<generalResponse<CompanyInvite[]>> {
     try {
       let results: CompanyInvite[];
-      if (type.toLowerCase() === 'request') {
+      if (type === CompanyInviteTypes.request) {
         results = await this.inviteRepo.findAllUserRequests(userId);
       }
-      if (type.toLowerCase() === 'invite') {
+      if (type === CompanyInviteTypes.invite) {
         results = await this.inviteRepo.findAllUserInvites(userId);
       }
-      if (!results) 
-        throw new HttpException('not exist', HttpStatus.NOT_FOUND);
+      if (!results) throw new HttpException('not exist', HttpStatus.NOT_FOUND);
       return {
         status_code: HttpStatus.OK,
         detail: results,
@@ -34,17 +41,19 @@ export class CompaniesInvitesService {
     }
   }
 
-  async getAllCompanyInvitesOrRequest(companyId: string, type: string): Promise<generalResponse<CompanyInvite[]>> {
+  async getAllCompanyInvitesOrRequest(
+    companyId: string,
+    type: string,
+  ): Promise<generalResponse<CompanyInvite[]>> {
     try {
       let results: CompanyInvite[];
-      if (type.toLowerCase() === 'request') {
+      if (type === CompanyInviteTypes.request) {
         results = await this.inviteRepo.findAllCompanyRequests(companyId);
       }
-      if (type.toLowerCase() === 'invite') {
+      if (type === CompanyInviteTypes.invite) {
         results = await this.inviteRepo.findAllCompanyInvites(companyId);
       }
-      if (!results) 
-        throw new HttpException('not exist', HttpStatus.NOT_FOUND);
+      if (!results) throw new HttpException('not exist', HttpStatus.NOT_FOUND);
       return {
         status_code: HttpStatus.OK,
         detail: results,
@@ -55,7 +64,9 @@ export class CompaniesInvitesService {
     }
   }
 
-  async inviteUserToCompany(inviteData: InviteUserToCompany): Promise<generalResponse<CompanyInvite>> {
+  async inviteUserToCompany(
+    inviteData: InviteUserToCompany,
+  ): Promise<generalResponse<CompanyInvite>> {
     try {
       const invite = await this.inviteRepo.findOneByCompanyIdAndUsersId(
         inviteData.companyId,
@@ -84,7 +95,9 @@ export class CompaniesInvitesService {
     }
   }
 
-  async inviteRequestToCompany(inviteData: RequestInviteToCompany): Promise<generalResponse<CompanyInvite>> {
+  async inviteRequestToCompany(
+    inviteData: RequestInviteToCompany,
+  ): Promise<generalResponse<CompanyInvite>> {
     try {
       const companyOwnerId = await this.companyMembersRepo.getCompanyOwner(
         inviteData.companyId,
@@ -116,7 +129,9 @@ export class CompaniesInvitesService {
     }
   }
 
-  async abortInvitationUserToCompany(inviteData: InviteUserToCompany): Promise<generalResponse<string>> {
+  async abortInvitationUserToCompany(
+    inviteData: InviteUserToCompany,
+  ): Promise<generalResponse<string>> {
     try {
       const invite = await this.inviteRepo.findOneByCompanyIdAndUsersId(
         inviteData.companyId,
@@ -127,7 +142,7 @@ export class CompaniesInvitesService {
         throw new HttpException('invite is not exist', HttpStatus.NOT_FOUND);
       if (invite.userFrom.id != inviteData.userFromId)
         throw new HttpException('FORBIDDEN RESOURCE', HttpStatus.FORBIDDEN);
-      if (invite.status.toLowerCase() === 'aborted')
+      if (invite.status === CompanyInvitesStatuses.aborted)
         throw new HttpException(
           'invite is already aborted',
           HttpStatus.BAD_REQUEST,
@@ -146,7 +161,9 @@ export class CompaniesInvitesService {
     }
   }
 
-  async abortInviteRequestToCompany(inviteData: RequestInviteToCompany): Promise<generalResponse<string>> {
+  async abortInviteRequestToCompany(
+    inviteData: RequestInviteToCompany,
+  ): Promise<generalResponse<string>> {
     try {
       const invite = await this.inviteRepo.findOneByCompanyIdAndUsersId(
         inviteData.companyId,
@@ -154,7 +171,7 @@ export class CompaniesInvitesService {
       );
       if (!invite)
         throw new HttpException('invite is not exist', HttpStatus.NOT_FOUND);
-      if (invite.status.toLowerCase() === 'aborted')
+      if (invite.status === CompanyInvitesStatuses.aborted)
         throw new HttpException(
           'invite is already aborted',
           HttpStatus.BAD_REQUEST,
@@ -173,7 +190,9 @@ export class CompaniesInvitesService {
     }
   }
 
-  async approveInviteRequestToCompany(inviteData: InviteUserToCompany): Promise<generalResponse<CompanyInvite>> {
+  async approveInviteRequestToCompany(
+    inviteData: InviteUserToCompany,
+  ): Promise<generalResponse<CompanyInvite>> {
     try {
       const invite = await this.inviteRepo.findOneByCompanyIdAndUsersId(
         inviteData.companyId,
@@ -183,7 +202,7 @@ export class CompaniesInvitesService {
 
       if (!invite)
         throw new HttpException('invite is not exist', HttpStatus.NOT_FOUND);
-      if (invite.status.toLowerCase() === 'approved')
+      if (invite.status === CompanyInvitesStatuses.approved)
         throw new HttpException(
           'invite is already approved',
           HttpStatus.BAD_REQUEST,
@@ -191,7 +210,7 @@ export class CompaniesInvitesService {
       const approvedInvite = await this.inviteRepo.approve(invite.id);
       const user = {
         companyId: inviteData.companyId,
-        role: 'user',
+        role: CompanyRoles.simpleUser,
         userId: inviteData.userFromId,
       };
       await this.companyMembersRepo.create(user);
@@ -208,7 +227,9 @@ export class CompaniesInvitesService {
     }
   }
 
-  async declineInviteRequestToCompany(inviteData: InviteUserToCompany): Promise<generalResponse<CompanyInvite>>{
+  async declineInviteRequestToCompany(
+    inviteData: InviteUserToCompany,
+  ): Promise<generalResponse<CompanyInvite>> {
     try {
       const invite = await this.inviteRepo.findOneByCompanyIdAndUsersId(
         inviteData.companyId,
@@ -218,7 +239,7 @@ export class CompaniesInvitesService {
 
       if (!invite)
         throw new HttpException('invite is not exist', HttpStatus.NOT_FOUND);
-      if (invite.status.toLowerCase() === 'declined')
+      if (invite.status === CompanyInvitesStatuses.declined)
         throw new HttpException(
           'invite is already declined',
           HttpStatus.BAD_REQUEST,

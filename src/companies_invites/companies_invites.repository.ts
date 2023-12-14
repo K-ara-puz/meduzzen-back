@@ -1,8 +1,7 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeleteResult, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CompanyInvite } from '../entities/companyInvite';
-import { InviteUserToCompany } from './dto/InviteUserToCompany.dto';
-import { RequestInviteToCompany } from './dto/RequestInviteToCompany.dto';
+import { CompanyInviteTypes, CompanyInvitesStatuses } from '../utils/constants';
 
 export default class CompanyInviteRepo {
   constructor(
@@ -37,23 +36,38 @@ export default class CompanyInviteRepo {
   }
 
   async createRequestToUser(inviteData): Promise<CompanyInvite> {
-    return this.inviteRepository.save({ ...inviteData, type: 'invite' });
+    return this.inviteRepository.save({
+      ...inviteData,
+      type: CompanyInviteTypes.invite,
+    });
   }
 
   async createRequestToCompany(inviteData): Promise<CompanyInvite> {
-    return this.inviteRepository.save({ ...inviteData, type: 'request' });
+    return this.inviteRepository.save({
+      ...inviteData,
+      type: CompanyInviteTypes.request,
+    });
   }
 
   async abort(inviteId: string): Promise<CompanyInvite> {
-    return this.inviteRepository.save({ id: inviteId, status: 'aborted' });
+    return this.inviteRepository.save({
+      id: inviteId,
+      status: CompanyInvitesStatuses.aborted,
+    });
   }
 
   async approve(inviteId: string): Promise<CompanyInvite> {
-    return this.inviteRepository.save({ id: inviteId, status: 'approved' });
+    return this.inviteRepository.save({
+      id: inviteId,
+      status: CompanyInvitesStatuses.approved,
+    });
   }
 
   async decline(inviteId: string): Promise<CompanyInvite> {
-    return this.inviteRepository.save({ id: inviteId, status: 'declined' });
+    return this.inviteRepository.save({
+      id: inviteId,
+      status: CompanyInvitesStatuses.declined,
+    });
   }
 
   async findAllUserRequests(userId: string): Promise<CompanyInvite[]> {
@@ -66,7 +80,7 @@ export default class CompanyInviteRepo {
       .leftJoinAndSelect('company_invite.company', 'company')
       .select(['user.id', 'targetUser.id', 'company_invite.type', 'company'])
       .where({ userFrom: { id: userId } })
-      .andWhere({ type: 'request' }, { type: 'Request' })
+      .andWhere({ type: CompanyInviteTypes.request })
       .getMany();
   }
 
@@ -80,7 +94,7 @@ export default class CompanyInviteRepo {
       .leftJoinAndSelect('company_invite.company', 'company')
       .select(['user.id', 'targetUser.id', 'company_invite.type', 'company'])
       .where({ userFrom: { id: userId } })
-      .andWhere({ type: 'invite' }, { type: 'Invite' })
+      .andWhere({ type: CompanyInviteTypes.invite })
       .getMany();
   }
 
@@ -93,7 +107,7 @@ export default class CompanyInviteRepo {
       .leftJoinAndSelect('company_invite.targetUser', 'targetUser')
       .select(['user.id', 'targetUser.id', 'company_invite.type'])
       .where({ company: { id: companyId } })
-      .andWhere({ type: 'invite' }, { type: 'Invite' })
+      .andWhere({ type: CompanyInviteTypes.invite })
       .getMany();
   }
 
@@ -106,7 +120,7 @@ export default class CompanyInviteRepo {
       .leftJoinAndSelect('company_invite.targetUser', 'targetUser')
       .select(['user.id', 'targetUser.id', 'company_invite.type'])
       .where({ company: { id: companyId } })
-      .andWhere({ type: 'request' }, { type: 'Request' })
+      .andWhere({ type: CompanyInviteTypes.request })
       .getMany();
   }
 }

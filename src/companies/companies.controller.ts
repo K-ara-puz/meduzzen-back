@@ -22,15 +22,15 @@ import { ApiOperation } from '@nestjs/swagger';
 import { CompanyRolesGuard } from './guards/companyRoles.guard';
 import { Roles } from './decorators/companyRoles.decorator';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
+import { CompanyRoles } from '../utils/constants';
 
 @Controller('companies')
 @UseGuards(MyAuthGuard)
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
-  
+
   @Get()
   @ApiOperation({ summary: 'Get all companies' })
-  @UseGuards(MyAuthGuard)
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
@@ -39,17 +39,6 @@ export class CompaniesController {
     return this.companiesService.getAll({ page, limit });
   }
 
-  @Get()
-  @ApiOperation({ summary: 'Get all companies' })
-  @UseGuards(MyAuthGuard)
-  async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
-  ): Promise<generalResponse<object>> {
-    limit = limit > 100 ? 100 : limit;
-    return this.companiesService.getAll({ page, limit });
-  }
-  
   @Get(':id')
   async findOne(
     @Param('id') id: string,
@@ -69,7 +58,7 @@ export class CompaniesController {
   }
 
   @Put(':id')
-  @Roles(['admin', 'owner'])
+  @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
   async editCompany(
     @Body() companyData: Partial<CreateCompanyDto>,
@@ -79,7 +68,9 @@ export class CompaniesController {
   }
 
   @Delete(':id')
-  async deleteCompany(@Param('id') companyId: string): Promise<generalResponse<string>> {
+  async deleteCompany(
+    @Param('id') companyId: string,
+  ): Promise<generalResponse<string>> {
     return this.companiesService.deleteCompany(companyId);
   }
 }

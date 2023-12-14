@@ -21,10 +21,14 @@ export class CompanyRolesGuard {
       userId = userFromToken.id;
       companyId = request.body.companyId;
       if (!companyId) {
-        companyId = request.params.id
+        companyId = request.params.id;
       }
-      const companyMember = await this.companyMembersRepo.findOneByCompanyIdAndUserId(companyId, userId);
-      if (!roles.includes(companyMember.role.toLowerCase())) {
+      const companyMember =
+        await this.companyMembersRepo.findOneByCompanyIdAndUserId(
+          companyId,
+          userId,
+        );
+      if (!roles.includes(companyMember.role)) {
         return false;
       }
       return true;

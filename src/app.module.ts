@@ -11,6 +11,7 @@ import { UploadModule } from './upload/upload.module';
 import { CompaniesModule } from './companies/companies.module';
 import { CompaniesMembersModule } from './companies-members/companies-members.module';
 import { CompaniesInvitesModule } from './companies_invites/companies_invites.module';
+import { CompaniesRolesModule } from './companies_roles/companies_roles.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { CompaniesInvitesModule } from './companies_invites/companies_invites.mo
     UploadModule,
     CompaniesModule,
     CompaniesMembersModule,
-    CompaniesInvitesModule
+    CompaniesInvitesModule,
+    CompaniesRolesModule
   ],
   controllers: [AppController],
   providers: [AppService, MyLogger],

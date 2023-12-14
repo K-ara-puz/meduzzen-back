@@ -3,6 +3,8 @@ import { DeleteResult, Repository } from 'typeorm';
 import { CompanyMember } from '../entities/companyMember';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { CreateCompaniesMemberDto } from './dto/create-companies-member.dto';
+import { EditCompanyMemberDto } from './dto/edit-company-member-role.dto';
+import { CompanyRoles } from '../utils/constants';
 
 export default class CompanyMembersRepo {
   constructor(
@@ -15,6 +17,21 @@ export default class CompanyMembersRepo {
   ): Promise<Partial<CompanyMember>> {
     try {
       return this.companyMembersRepository.save({
+        company: { id: data.companyId },
+        user: { id: data.userId },
+        role: data.role,
+      });
+    } catch (error) {
+      throw new HttpException(error.message, HttpStatus.NOT_FOUND);
+    }
+  }
+  
+  async update(
+    data: EditCompanyMemberDto,
+  ): Promise<Partial<CompanyMember>> {
+    try {
+      return this.companyMembersRepository.save({
+        id: data.id,
         company: { id: data.companyId },
         user: { id: data.userId },
         role: data.role,
@@ -56,7 +73,7 @@ export default class CompanyMembersRepo {
       const { user: companyOwner } = await queryBuilder
         .leftJoinAndSelect('company_member.user', 'user')
         .where('company_member.company = :company', { company: companyI })
-        .andWhere([{ role: 'Owner' }, { role: 'owner' }])
+        .andWhere([{ role: CompanyRoles.owner }])
         .getOne();
       return companyOwner.id;
     } catch (error) {

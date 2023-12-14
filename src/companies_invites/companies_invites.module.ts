@@ -8,11 +8,12 @@ import { CompaniesMembersModule } from '../companies-members/companies-members.m
 import { CompaniesModule } from '../companies/companies.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CompanyInvite]), CompaniesMembersModule, CompaniesModule],
-  controllers: [CompaniesInvitesController],
-  providers: [
-    CompaniesInvitesService,
-    CompanyInviteRepo,
+  imports: [
+    TypeOrmModule.forFeature([CompanyInvite]),
+    CompaniesMembersModule,
+    CompaniesModule,
   ],
+  controllers: [CompaniesInvitesController],
+  providers: [CompaniesInvitesService, CompanyInviteRepo],
 })
 export class CompaniesInvitesModule {}

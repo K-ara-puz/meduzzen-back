@@ -2,8 +2,6 @@ import {
   Body,
   Controller,
   Post,
-  Request,
-  Req,
   UseGuards,
   Put,
   Get,
@@ -21,6 +19,7 @@ import { ApproveInviteToCompany } from './dto/ApproveInviteToCompany.dto';
 import { ApproveInvitationUserToCompany } from './dto/ApproveInvitationUserToCompany.dto';
 import { User } from '../entities/user.entity';
 import { CompanyInvite } from '../entities/companyInvite';
+import { CompanyInviteTypes, CompanyRoles } from '../utils/constants';
 
 @Controller('companies-invites')
 @UseGuards(MyAuthGuard)
@@ -29,40 +28,51 @@ export class CompaniesInvitesController {
     private readonly companiesInvitesService: CompaniesInvitesService,
   ) {}
 
-
   @Get('/get-user-requests-to-company')
   async getAllUsersRequestsByUserId(
     @UserFromToken() user: User,
   ): Promise<generalResponse<CompanyInvite[]>> {
-    return this.companiesInvitesService.getAllUsersRequestsOrInvitesByUserId(user.id, 'request');
+    return this.companiesInvitesService.getAllUsersRequestsOrInvitesByUserId(
+      user.id,
+      CompanyInviteTypes.request,
+    );
   }
 
   @Get('/get-user-invites-to-company')
   async getAllUsersInvitesByUserId(
     @UserFromToken() user: User,
   ): Promise<generalResponse<CompanyInvite[]>> {
-    return this.companiesInvitesService.getAllUsersRequestsOrInvitesByUserId(user.id, 'invite');
+    return this.companiesInvitesService.getAllUsersRequestsOrInvitesByUserId(
+      user.id,
+      CompanyInviteTypes.invite,
+    );
   }
 
   @Get('/get-company-invites/:id')
-  @Roles(['admin', 'owner'])
+  @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
   async getAllCompanyInvites(
     @Param('id') companyId: string,
   ): Promise<generalResponse<CompanyInvite[]>> {
-    return this.companiesInvitesService.getAllCompanyInvitesOrRequest(companyId, 'invite');
+    return this.companiesInvitesService.getAllCompanyInvitesOrRequest(
+      companyId,
+      CompanyInviteTypes.invite,
+    );
   }
   @Get('/get-company-requests/:id')
-  @Roles(['admin', 'owner'])
+  @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
   async getAllCompanyRequests(
     @Param('id') companyId: string,
   ): Promise<generalResponse<CompanyInvite[]>> {
-    return this.companiesInvitesService.getAllCompanyInvitesOrRequest(companyId, 'request');
+    return this.companiesInvitesService.getAllCompanyInvitesOrRequest(
+      companyId,
+      CompanyInviteTypes.request,
+    );
   }
 
   @Post('/invite-user-to-company')
-  @Roles(['admin', 'owner'])
+  @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
   async inviteUserToCompany(
     @Body() inviteData: InviteUserToCompany,
@@ -86,7 +96,7 @@ export class CompaniesInvitesController {
   }
 
   @Put('/abort-invitation-user-to-company')
-  @Roles(['admin', 'owner'])
+  @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
   async abortInvitationUserToCompany(
     @Body() inviteData: ApproveInvitationUserToCompany,
@@ -110,7 +120,7 @@ export class CompaniesInvitesController {
   }
 
   @Put('/approve-invitation-user-to-company')
-  @Roles(['admin', 'owner'])
+  @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
   async approveInvitationUserToCompany(
     @Body() inviteData: ApproveInviteToCompany,
@@ -145,7 +155,7 @@ export class CompaniesInvitesController {
   }
 
   @Put('/decline-user-request-to-company')
-  @Roles(['admin', 'owner'])
+  @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
   async declineUserRequestToCompany(
     @Body() inviteData: ApproveInviteToCompany,

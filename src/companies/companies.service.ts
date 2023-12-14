@@ -9,11 +9,9 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from '../entities/company';
 import { User } from '../entities/user.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { CreateCompaniesMemberDto } from '../companies-members/dto/create-companies-member.dto';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
+import { CompanyRoles } from '../utils/constants';
 
 @Injectable()
 export class CompaniesService {
@@ -24,7 +22,9 @@ export class CompaniesService {
     private companyMembersService: CompaniesMembersService,
   ) {}
 
-  async getAll(options: IPaginationOptions): Promise<generalResponse<PaginatedItems<Company[]>>> {
+  async getAll(
+    options: IPaginationOptions,
+  ): Promise<generalResponse<PaginatedItems<Company[]>>> {
     try {
       const paginatedCompanies = await paginate<Company>(
         this.companyRepository,
@@ -69,8 +69,8 @@ export class CompaniesService {
       const company: Partial<Company> =
         await this.companyRepo.create(companyData);
       const companyOwner: CreateCompaniesMemberDto = {
-        role: 'Owner',
-        userId: id ,
+        role: CompanyRoles.owner,
+        userId: id,
         companyId: company.id,
       };
       await this.companyMembersService.create(companyOwner);

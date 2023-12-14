@@ -1,36 +1,39 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { CreateCompaniesMemberDto } from './dto/create-companies-member.dto';
-import CompanyMembersRepo from './company-members.repository';
+import { CreateCompanyRoleDto } from './dto/create-companies-roles.dto';
+import { CompaniesMembersService } from '../companies-members/companies-members.service';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { CompanyMember } from '../entities/companyMember';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
-import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { CompanyRoles } from '../utils/constants';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
-import { EditCompanyMemberDto } from './dto/edit-company-member-role.dto';
 
 @Injectable()
-export class CompaniesMembersService {
+export class CompaniesRolesService {
   constructor(
     @InjectRepository(CompanyMember)
     private companyMemberRepository: Repository<CompanyMember>,
-    private companyMembersRepo: CompanyMembersRepo,
+    private companyMembersService: CompaniesMembersService,
   ) {}
 
-  async getCompanyMembers(
-    options: IPaginationOptions,
+  async getCompanyAdmins(
     companyId: string,
+    paginationOptions: IPaginationOptions,
   ): Promise<generalResponse<PaginatedItems<CompanyMember[]>>> {
     try {
       const queryBuilder =
         this.companyMemberRepository.createQueryBuilder('company_members');
       queryBuilder
         .leftJoinAndSelect('company_members.company', 'company')
+        .leftJoinAndSelect('company_members.user', 'user')
+        .select(['user.id', 'user.email', 'company_members.role'])
         .where('company_members.company = :company', { company: companyId })
+        .andWhere({role: CompanyRoles.admin})
         .getMany();
       const companyMembers = await paginate<CompanyMember>(
         queryBuilder,
-        options,
+        paginationOptions,
       );
       return {
         status_code: HttpStatus.OK,
@@ -48,36 +51,35 @@ export class CompaniesMembersService {
     }
   }
 
-  async findOne(
-    userId: string,
+  async create(
+    data: CreateCompanyRoleDto,
     companyId: string,
   ): Promise<generalResponse<Partial<CompanyMember>>> {
     try {
-      const companyMember =
-        await this.companyMembersRepo.findOneByCompanyIdAndUserId(
+      const { detail: companyMember } =
+        await this.companyMembersService.findOne(data.userId, companyId);
+      if (!companyMember) {
+        const { detail: createdMember } =
+          await this.companyMembersService.create({
+            ...data,
+            companyId,
+          });
+        return {
+          status_code: HttpStatus.OK,
+          detail: createdMember,
+          result: 'user was added to company with company role',
+        };
+      }
+      const { detail: updatedMember } =
+        await this.companyMembersService.editRole({
+          ...data,
+          id: companyMember.id,
           companyId,
-          userId,
-        );
-      return {
-        status_code: HttpStatus.OK,
-        detail: companyMember,
-        result: 'company member',
-      };
-    } catch (error) {
-      throw new HttpException(
-        error,
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async editRole(data: EditCompanyMemberDto) {
-    try {
-      const updatedMember = await this.companyMembersRepo.update(data);
+        });
       return {
         status_code: HttpStatus.OK,
         detail: updatedMember,
-        result: 'updated company member',
+        result: 'role was added',
       };
     } catch (error) {
       throw new HttpException(
@@ -87,36 +89,26 @@ export class CompaniesMembersService {
     }
   }
 
-  async create(
-    createCompaniesMemberDto: CreateCompaniesMemberDto,
+  async update(
+    data: CreateCompanyRoleDto,
+    companyId: string,
   ): Promise<generalResponse<Partial<CompanyMember>>> {
     try {
-      const companyMember = await this.companyMembersRepo.create(
-        createCompaniesMemberDto,
-      );
+      const { detail: companyMember } =
+        await this.companyMembersService.findOne(data.userId, companyId);
+      if (!companyMember) {
+        throw new HttpException('member is not exist', HttpStatus.NOT_FOUND);
+      }
+      const { detail: updatedMember } =
+        await this.companyMembersService.editRole({
+          ...data,
+          id: companyMember.id,
+          companyId,
+        });
       return {
         status_code: HttpStatus.OK,
-        detail: companyMember,
-        result: 'company member created',
-      };
-    } catch (error) {
-      throw new HttpException(
-        error,
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async deleteUserFromCompany(
-    userId: string,
-    companyId: string,
-  ): Promise<generalResponse<string>> {
-    try {
-      await this.companyMembersRepo.delete(userId, companyId);
-      return {
-        status_code: HttpStatus.OK,
-        detail: 'ok',
-        result: 'company member was deleted',
+        detail: updatedMember,
+        result: 'role was added',
       };
     } catch (error) {
       throw new HttpException(
