@@ -15,7 +15,7 @@ import { CreateCompaniesMemberDto } from './dto/create-companies-member.dto';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { CompanyMember } from '../entities/companyMember';
 import { Roles } from '../companies/decorators/companyRoles.decorator';
-import { CompanyRolesGuard } from '../companies/guards/companyRoles.guard';
+import { CompanyRolesGuard } from '../companies_roles/guards/companyRoles.guard';
 import { UserFromToken } from '../users/decorators/userFromToken.decorator';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
 import { User } from '../entities/user.entity';

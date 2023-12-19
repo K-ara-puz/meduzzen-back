@@ -1,14 +1,17 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { getUserFromToken } from '../../utils/getUserIdFromToken';
 import CompanyMembersRepo from '../../companies-members/company-members.repository';
 import { Reflector } from '@nestjs/core';
-import { Roles } from '../decorators/companyRoles.decorator';
+import { Roles } from '../../companies/decorators/companyRoles.decorator';
+import { jwtDecode } from 'jwt-decode';
+import { User } from '../../entities/user.entity';
+import { UsersService } from '../../users/users.service';
 
 @Injectable()
 export class CompanyRolesGuard {
   constructor(
     private companyMembersRepo: CompanyMembersRepo,
     private reflector: Reflector,
+    private userService: UsersService,
   ) {}
   async canActivate(context) {
     let companyId: string;
@@ -17,8 +20,14 @@ export class CompanyRolesGuard {
     if (!roles) return false;
     try {
       const request = context.switchToHttp().getRequest();
-      const userFromToken = getUserFromToken(request.headers.authorization);
-      userId = userFromToken.id;
+      const userFromToken = jwtDecode(
+        request.headers.authorization.split(' ')[1],
+      );
+      let user: Partial<User> = await this.userService.findOneByEmail(
+        userFromToken['email'],
+      );
+      if (!user) throw new HttpException('', 400);
+      userId = user.id;
       companyId = request.body.companyId;
       if (!companyId) {
         companyId = request.params.id;

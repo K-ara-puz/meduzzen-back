@@ -11,7 +11,7 @@ import { CompaniesInvitesService } from './companies_invites.service';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { MyAuthGuard } from '../auth/auth.guard';
 import { Roles } from '../companies/decorators/companyRoles.decorator';
-import { CompanyRolesGuard } from '../companies/guards/companyRoles.guard';
+import { CompanyRolesGuard } from '../companies_roles/guards/companyRoles.guard';
 import { UserFromToken } from '../users/decorators/userFromToken.decorator';
 import { InviteUserToCompany } from './dto/InviteUserToCompany.dto';
 import { RequestInviteToCompany } from './dto/RequestInviteToCompany.dto';

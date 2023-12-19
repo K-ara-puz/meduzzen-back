@@ -3,7 +3,7 @@ import { CompaniesRolesService } from './companies_roles.service';
 import { CreateCompanyRoleDto } from './dto/create-companies-roles.dto';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { Roles } from '../companies/decorators/companyRoles.decorator';
-import { CompanyRolesGuard } from '../companies/guards/companyRoles.guard';
+import { CompanyRolesGuard } from './guards/companyRoles.guard';
 import { MyAuthGuard } from '../auth/auth.guard';
 import { CompanyMember } from '../entities/companyMember';
 import { CompanyRoles } from '../utils/constants';

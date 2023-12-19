@@ -93,7 +93,7 @@ export default class CompanyInviteRepo {
       .leftJoinAndSelect('company_invite.targetUser', 'targetUser')
       .leftJoinAndSelect('company_invite.company', 'company')
       .select(['user.id', 'targetUser.id', 'company_invite.type', 'company'])
-      .where({ userFrom: { id: userId } })
+      .where({ targetUser: { id: userId } })
       .andWhere({ type: CompanyInviteTypes.invite })
       .getMany();
   }

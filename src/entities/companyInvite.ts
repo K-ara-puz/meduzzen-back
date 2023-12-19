@@ -22,11 +22,21 @@ export class CompanyInvite {
   @JoinColumn()
   userFrom: User;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, {
+    eager: true,
+    cascade: true,
+    onDelete: 'SET NULL',
+    orphanedRowAction: 'delete',
+  })
   @JoinColumn()
   targetUser: User;
 
-  @ManyToOne(() => Company, { eager: true })
+  @ManyToOne(() => Company, { 
+    eager: true,
+    cascade: true,
+    onDelete: 'SET NULL',
+    orphanedRowAction: 'delete',
+   })
   @JoinColumn()
   company: Company;
 

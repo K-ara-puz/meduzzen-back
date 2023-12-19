@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Get, Put, Req, Request, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, Put, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { CreateUserDto } from '../users/dto/create-user.dto';
@@ -6,6 +6,7 @@ import { User } from '../entities/user.entity';
 import { LoginUser } from './dto/loginUser.dto';
 import { ITokens } from '../interfaces/Tokens.interface';
 import { MyAuthGuard } from './auth.guard';
+import { UserFromToken } from '../users/decorators/userFromToken.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -13,8 +14,10 @@ export class AuthController {
 
   @Get('/me')
   @UseGuards(MyAuthGuard)
-  async authMe(@Req() req: Request): Promise<generalResponse<Partial<User>>> {
-    return await this.authService.authMe(req.headers['authorization']);
+  async authMe(
+    @UserFromToken() user: User,
+  ): Promise<generalResponse<Partial<User>>> {
+    return await this.authService.authMe(user.email);
   }
 
   @Post('/registration')
@@ -32,12 +35,14 @@ export class AuthController {
   }
 
   @Put('/logout')
-  async logout(@Req() req: Request): Promise<generalResponse<string>> {
-    return await this.authService.logout(req.headers['authorization']);
+  async logout(@UserFromToken() user: User): Promise<generalResponse<string>> {
+    return await this.authService.logout(user.email);
   }
-  
+
   @Post('/refreshToken')
-  async refreshToken(@Body() token: string): Promise<generalResponse<Partial<ITokens>>> {
+  async refreshToken(
+    @Body() token: string,
+  ): Promise<generalResponse<Partial<ITokens>>> {
     return await this.authService.refreshTokens(token);
   }
 }

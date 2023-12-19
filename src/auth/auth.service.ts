@@ -10,7 +10,6 @@ import AuthRepo from './auth.repository';
 import { User } from '../entities/user.entity';
 import { ITokens } from '../interfaces/Tokens.interface';
 import { LoginUser } from './dto/loginUser.dto';
-import { getUserFromToken } from '../utils/getUserIdFromToken';
 
 @Injectable()
 export class AuthService {
@@ -113,7 +112,9 @@ export class AuthService {
         ...user,
         password: hashPass,
       };
-
+      const existedUser = await userService.findOneByEmail(user.email);
+      if (existedUser)
+        throw new HttpException('user is already exist', HttpStatus.BAD_REQUEST)
       let { detail: createdUser } = await userService.create(modifiedUser);
       const tokens = await this.generateTokens({ ...createdUser });
       await this.saveTokens({ id: createdUser['id'] }, tokens);
@@ -160,11 +161,10 @@ export class AuthService {
     }
   }
 
-  async logout(token: ITokens): Promise<generalResponse<string>> {
+  async logout(userEmail: string): Promise<generalResponse<string>> {
     const userService = this.moduleRef.get(UsersService, { strict: false });
-    const userFromToken = getUserFromToken(token);
     try {
-      const user = await userService.findOneByEmail(userFromToken['email']);
+      const user = await userService.findOneByEmail(userEmail);
       if (!user) {
         throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
       }
@@ -182,11 +182,10 @@ export class AuthService {
     }
   }
 
-  async authMe(token: ITokens): Promise<generalResponse<Partial<User>>> {
+  async authMe(userEmail: string): Promise<generalResponse<Partial<User>>> {
     try {
-      const userFromToken = getUserFromToken(token);
       const userService = this.moduleRef.get(UsersService, { strict: false });
-      const user = await userService.findOneByEmail(userFromToken['email']);
+      const user = await userService.findOneByEmail(userEmail);
       if (!user) {
         throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
       }

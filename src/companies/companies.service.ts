@@ -1,6 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { getUserFromToken } from '../utils/getUserIdFromToken';
-import CompanyRepo from './company.repository';
+import CompanyRepo from './companies.repository';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { CompaniesMembersService } from '../companies-members/companies-members.service';
 import { generalResponse } from '../interfaces/generalResponse.interface';
@@ -8,10 +7,10 @@ import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from '../entities/company';
-import { User } from '../entities/user.entity';
 import { CreateCompaniesMemberDto } from '../companies-members/dto/create-companies-member.dto';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
 import { CompanyRoles } from '../utils/constants';
+import { CompanyMember } from '../entities/companyMember';
 
 @Injectable()
 export class CompaniesService {
@@ -46,6 +45,28 @@ export class CompaniesService {
     }
   }
 
+  async findAllUserCompanies(
+    options: IPaginationOptions,
+    userId: string
+  ): Promise<generalResponse<PaginatedItems<CompanyMember[]>>> {
+    try {
+      const paginatedCompanies = await this.companyRepo.findAllUserCompanies(userId, options);
+      return {
+        status_code: HttpStatus.OK,
+        detail: {
+          items: paginatedCompanies.items,
+          totalItemsCount: paginatedCompanies.meta.totalItems,
+        },
+        result: 'get paginated companies',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async findOne(id: string): Promise<generalResponse<Partial<Company>>> {
     try {
       const company = await this.companyRepo.findOne(id);
@@ -61,16 +82,15 @@ export class CompaniesService {
   }
 
   async createCompany(
-    rawToken: string,
     companyData: CreateCompanyDto,
+    userId: string
   ): Promise<generalResponse<Partial<Company>>> {
     try {
-      const { id }: Partial<User> = getUserFromToken(rawToken);
       const company: Partial<Company> =
         await this.companyRepo.create(companyData);
       const companyOwner: CreateCompaniesMemberDto = {
         role: CompanyRoles.owner,
-        userId: id,
+        userId,
         companyId: company.id,
       };
       await this.companyMembersService.create(companyOwner);
