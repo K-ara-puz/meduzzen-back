@@ -5,6 +5,7 @@ import { jwtDecode } from 'jwt-decode';
 import { ModuleRef } from '@nestjs/core';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
+import { User } from '../entities/user.entity';
 const jwt = new JwtService();
 @Injectable()
 export class MyAuthGuard {
@@ -13,9 +14,9 @@ export class MyAuthGuard {
   ) {}
   async canActivate(context) {
     let token: string;
+    const request = context.switchToHttp().getRequest();
+    token = request.headers.authorization.split(' ')[1];
     try {
-      const request = context.switchToHttp().getRequest();
-      token = request.headers.authorization.split(' ')[1];  
     } catch (error) {
       throw new HttpException('FORBIDDEN RESOURCE', HttpStatus.FORBIDDEN);
     }
@@ -23,7 +24,7 @@ export class MyAuthGuard {
       return await this.mainAuthGuard(token);
     } catch (error) {
       try {
-        return await this.mainAuth0Guard(token);
+        return await this.mainAuth0Guard(token, request);
       } catch(error) {
         return null
       }
@@ -33,7 +34,7 @@ export class MyAuthGuard {
     const validated = jwt.verify(token, {publicKey: process.env.JWT_ACCESS_SECRET})
     return validated
   }
-  async mainAuth0Guard(token: string) {
+  async mainAuth0Guard(token: string, request) {
     const client = new JwksClient({
       jwksUri: `${process.env.AUTH0_ISSUER_URL}.well-known/jwks.json`,
       requestHeaders: {},
@@ -46,15 +47,17 @@ export class MyAuthGuard {
       const userFromToken = jwtDecode(token);
       const userService = this.moduleRef.get(UsersService, { strict: false });
       const authService = this.moduleRef.get(AuthService, { strict: false });
-      const user = await userService.findOneByEmail(userFromToken['email']);
+      let user: Partial<User> = await userService.findOneByEmail(userFromToken['email']);
       if (!user) {
-        await authService.register({
+        const res = await authService.register({
           email: userFromToken['email'],
           password: 'null',
           firstName: userFromToken['email'],
           lastName: 'null'
         });
+        user = res.detail
       }
+      request.user = user;
       return jwt.verify(token, {publicKey: signingKey});
 
     } catch (error) {

@@ -7,6 +7,7 @@ import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
+import { EditCompanyMemberDto } from './dto/edit-company-member-role.dto';
 
 @Injectable()
 export class CompaniesMembersService {
@@ -16,19 +17,29 @@ export class CompaniesMembersService {
     private companyMembersRepo: CompanyMembersRepo,
   ) {}
 
-  async getCompanyMembers(options: IPaginationOptions, companyId: string): Promise<generalResponse<PaginatedItems<CompanyMember[]>>> {
+  async getCompanyMembers(
+    options: IPaginationOptions,
+    companyId: string,
+  ): Promise<generalResponse<PaginatedItems<CompanyMember[]>>> {
     try {
-      const queryBuilder = this.companyMemberRepository.createQueryBuilder('company_members');
-        queryBuilder
-          .leftJoinAndSelect('company_members.company', 'company')
-          .where('company_members.company = :company', { company: companyId })
-          .getMany();
-      const companyMembers = await paginate<CompanyMember>(queryBuilder, options);
+      const queryBuilder =
+        this.companyMemberRepository.createQueryBuilder('company_members');
+      queryBuilder
+        .leftJoinAndSelect('company_members.company', 'company')
+        .where('company_members.company = :company', { company: companyId })
+        .getMany();
+      const companyMembers = await paginate<CompanyMember>(
+        queryBuilder,
+        options,
+      );
       return {
         status_code: HttpStatus.OK,
-        detail: {items: companyMembers.items, totalItemsCount: companyMembers.meta.totalItems},
-        result: 'company member created',
-      }
+        detail: {
+          items: companyMembers.items,
+          totalItemsCount: companyMembers.meta.totalItems,
+        },
+        result: 'company members',
+      };
     } catch (error) {
       throw new HttpException(
         error,
@@ -37,14 +48,57 @@ export class CompaniesMembersService {
     }
   }
 
-  async create(createCompaniesMemberDto: CreateCompaniesMemberDto): Promise<generalResponse<Partial<CompanyMember>>> {
+  async findOne(
+    userId: string,
+    companyId: string,
+  ): Promise<generalResponse<Partial<CompanyMember>>> {
     try {
-      const companyMember = await this.companyMembersRepo.create(createCompaniesMemberDto);
+      const companyMember =
+        await this.companyMembersRepo.findOneByCompanyIdAndUserId(
+          companyId,
+          userId,
+        );
+      return {
+        status_code: HttpStatus.OK,
+        detail: companyMember,
+        result: 'company member',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async editRole(data: EditCompanyMemberDto) {
+    try {
+      const updatedMember = await this.companyMembersRepo.update(data);
+      return {
+        status_code: HttpStatus.OK,
+        detail: updatedMember,
+        result: 'updated company member',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async create(
+    createCompaniesMemberDto: CreateCompaniesMemberDto,
+  ): Promise<generalResponse<Partial<CompanyMember>>> {
+    try {
+      const companyMember = await this.companyMembersRepo.create(
+        createCompaniesMemberDto,
+      );
       return {
         status_code: HttpStatus.OK,
         detail: companyMember,
         result: 'company member created',
-      }
+      };
     } catch (error) {
       throw new HttpException(
         error,
@@ -53,14 +107,17 @@ export class CompaniesMembersService {
     }
   }
 
-  async deleteUserFromCompany(userId: string, companyId: string): Promise<generalResponse<string>> {
+  async deleteUserFromCompany(
+    userId: string,
+    companyId: string,
+  ): Promise<generalResponse<string>> {
     try {
       await this.companyMembersRepo.delete(userId, companyId);
       return {
         status_code: HttpStatus.OK,
         detail: 'ok',
         result: 'company member was deleted',
-      }
+      };
     } catch (error) {
       throw new HttpException(
         error,
@@ -68,5 +125,4 @@ export class CompaniesMembersService {
       );
     }
   }
-
 }

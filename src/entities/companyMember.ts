@@ -13,11 +13,21 @@ export class CompanyMember {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ManyToOne(() => User, (user) => user, { eager: true })
+  @ManyToOne(() => User, (user) => user, {
+    eager: true,
+    cascade: true,
+    onDelete: 'SET NULL',
+    orphanedRowAction: 'delete',
+  })
   @JoinColumn()
   user: Partial<User>;
 
-  @ManyToOne(() => Company, { eager: true })
+  @ManyToOne(() => Company, { 
+    eager: true,
+    cascade: true,
+    onDelete: 'SET NULL',
+    orphanedRowAction: 'delete',
+   })
   @JoinColumn()
   company: Partial<Company>;
 
