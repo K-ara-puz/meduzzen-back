@@ -43,6 +43,6 @@ export class CompaniesRolesController {
     @Param() {id},
     @Body() data: CreateCompanyRoleDto,
   ): Promise<generalResponse<Partial<CompanyMember>>> {
-    return await this.companiesRolesService.update(data, id);
+    return await this.companiesRolesService.create(data, id);
   }
 }

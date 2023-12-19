@@ -58,47 +58,11 @@ export class CompaniesRolesService {
     try {
       const { detail: companyMember } =
         await this.companyMembersService.findOne(data.userId, companyId);
-      if (!companyMember) {
-        const { detail: createdMember } =
-          await this.companyMembersService.create({
-            ...data,
-            companyId,
-          });
-        return {
-          status_code: HttpStatus.OK,
-          detail: createdMember,
-          result: 'user was added to company with company role',
-        };
-      }
-      const { detail: updatedMember } =
-        await this.companyMembersService.editRole({
-          ...data,
-          id: companyMember.id,
-          companyId,
-        });
-      return {
-        status_code: HttpStatus.OK,
-        detail: updatedMember,
-        result: 'role was added',
-      };
-    } catch (error) {
-      throw new HttpException(
-        error,
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  async update(
-    data: CreateCompanyRoleDto,
-    companyId: string,
-  ): Promise<generalResponse<Partial<CompanyMember>>> {
-    try {
-      const { detail: companyMember } =
-        await this.companyMembersService.findOne(data.userId, companyId);
-      if (!companyMember) {
-        throw new HttpException('member is not exist', HttpStatus.NOT_FOUND);
-      }
+      if (!companyMember) 
+        throw new HttpException(
+          'user is not a member',
+          HttpStatus.BAD_REQUEST
+        );
       const { detail: updatedMember } =
         await this.companyMembersService.editRole({
           ...data,
