@@ -15,3 +15,7 @@ export const CompanyInviteTypes = Object.freeze({
   invite: 'invite',
   request: 'request',
 });
+
+export enum TokenErrors {
+  expiredToken = 'TokenExpiredError'
+}

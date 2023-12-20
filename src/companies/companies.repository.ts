@@ -16,6 +16,10 @@ export default class CompanyRepo {
   async findOne(id: string): Promise<Partial<Company>> {
     return this.companyRepository.findOne({ where: { id } });
   }
+  
+  async findOneByName(name: string): Promise<Partial<Company>> {
+    return this.companyRepository.findOne({ where: { name } });
+  }
 
   async findAllUserCompanies(id: string, options: IPaginationOptions) {
     const qB =
