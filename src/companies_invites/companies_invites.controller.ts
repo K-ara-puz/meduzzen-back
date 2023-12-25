@@ -126,10 +126,13 @@ export class CompaniesInvitesController {
     @Body() inviteData: ApproveInviteToCompany,
     @UserFromToken() user: User,
   ): Promise<generalResponse<CompanyInvite>> {
-    return this.companiesInvitesService.approveInviteRequestToCompany({
-      ...inviteData,
-      targetUserId: user.id,
-    });
+    return this.companiesInvitesService.approveInviteRequestToCompany(
+      {
+        ...inviteData,
+        targetUserId: user.id,
+      },
+      CompanyInviteTypes.request,
+    );
   }
 
   @Put('/approve-invite-request-to-company')
@@ -137,10 +140,13 @@ export class CompaniesInvitesController {
     @Body() inviteData: ApproveInviteToCompany,
     @UserFromToken() user: User,
   ): Promise<generalResponse<CompanyInvite>> {
-    return this.companiesInvitesService.approveInviteRequestToCompany({
-      ...inviteData,
-      targetUserId: user.id,
-    });
+    return this.companiesInvitesService.approveInviteRequestToCompany(
+      {
+        ...inviteData,
+        targetUserId: user.id,
+      },
+      CompanyInviteTypes.invite,
+    );
   }
 
   @Put('/decline-invite-request-to-company')

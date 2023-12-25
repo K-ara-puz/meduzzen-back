@@ -70,6 +70,31 @@ export class CompaniesService {
     }
   }
 
+  async getCompaniesWhereIMember(
+    options: IPaginationOptions,
+    userId: string
+  ): Promise<generalResponse<PaginatedItems<CompanyMember[]>>> {
+    try {
+      const paginatedCompanies = await this.companyRepo.getCompaniesWhereIMember(
+        userId,
+        options,
+      );
+      return {
+        status_code: HttpStatus.OK,
+        detail: {
+          items: paginatedCompanies.items,
+          totalItemsCount: paginatedCompanies.meta.totalItems,
+        },
+        result: 'get paginated companies',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async findOne(id: string): Promise<generalResponse<Partial<Company>>> {
     try {
       const company = await this.companyRepo.findOne(id);

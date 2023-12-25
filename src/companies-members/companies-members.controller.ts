@@ -29,7 +29,7 @@ export class CompaniesMembersController {
     private readonly companiesMembersService: CompaniesMembersService,
   ) {}
 
-  @Get(':id')
+  @Get('/all/:id')
   @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
   async getCompanyMembers(
@@ -42,6 +42,14 @@ export class CompaniesMembersController {
       { page, limit },
       companyId,
     );
+  }
+
+  @Get(':id')
+  async getMyCompanyMember(
+    @Param('id') companyId: string,
+    @UserFromToken() user: User,
+  ): Promise<generalResponse<Partial<CompanyMember>>> {
+    return this.companiesMembersService.findOne(user.id, companyId);
   }
 
   @Post()
