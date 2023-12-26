@@ -78,7 +78,14 @@ export default class CompanyInviteRepo {
       .leftJoinAndSelect('company_invite.userFrom', 'user')
       .leftJoinAndSelect('company_invite.targetUser', 'targetUser')
       .leftJoinAndSelect('company_invite.company', 'company')
-      .select(['user.id', 'targetUser.id', 'company_invite.type', 'company'])
+      .select([
+        'user.id',
+        'targetUser.id',
+        'company_invite.type',
+        'company',
+        'company_invite.status',
+        'company_invite.id',
+      ])
       .where({ userFrom: { id: userId } })
       .andWhere({ type: CompanyInviteTypes.request })
       .getMany();
@@ -92,7 +99,14 @@ export default class CompanyInviteRepo {
       .leftJoinAndSelect('company_invite.userFrom', 'user')
       .leftJoinAndSelect('company_invite.targetUser', 'targetUser')
       .leftJoinAndSelect('company_invite.company', 'company')
-      .select(['user.id', 'targetUser.id', 'company_invite.type', 'company'])
+      .select([
+        'user.id',
+        'targetUser.id',
+        'company_invite.type',
+        'company',
+        'company_invite.status',
+        'company_invite.id',
+      ])
       .where({ targetUser: { id: userId } })
       .andWhere({ type: CompanyInviteTypes.invite })
       .getMany();
@@ -105,7 +119,15 @@ export default class CompanyInviteRepo {
     return await queryBuilder
       .leftJoinAndSelect('company_invite.userFrom', 'user')
       .leftJoinAndSelect('company_invite.targetUser', 'targetUser')
-      .select(['user.id', 'targetUser.id', 'company_invite.type'])
+      .leftJoinAndSelect('company_invite.company', 'company')
+      .select([
+        'user',
+        'targetUser',
+        'company',
+        'company_invite.type',
+        'company_invite.status',
+        'company_invite.id',
+      ])
       .where({ company: { id: companyId } })
       .andWhere({ type: CompanyInviteTypes.invite })
       .getMany();
@@ -118,7 +140,15 @@ export default class CompanyInviteRepo {
     return await queryBuilder
       .leftJoinAndSelect('company_invite.userFrom', 'user')
       .leftJoinAndSelect('company_invite.targetUser', 'targetUser')
-      .select(['user.id', 'targetUser.id', 'company_invite.type'])
+      .leftJoinAndSelect('company_invite.company', 'company')
+      .select([
+        'user',
+        'targetUser',
+        'company',
+        'company_invite.type',
+        'company_invite.status',
+        'company_invite.id',
+      ])
       .where({ company: { id: companyId } })
       .andWhere({ type: CompanyInviteTypes.request })
       .getMany();
