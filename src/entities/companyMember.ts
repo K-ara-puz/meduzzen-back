@@ -25,8 +25,7 @@ export class CompanyMember {
   @ManyToOne(() => Company, { 
     eager: true,
     cascade: true,
-    onDelete: 'SET NULL',
-    orphanedRowAction: 'delete',
+    onDelete: 'CASCADE',
    })
   @JoinColumn()
   company: Partial<Company>;

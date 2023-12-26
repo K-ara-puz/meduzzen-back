@@ -16,8 +16,7 @@ export class CompanyInvite {
   @ManyToOne(() => User, {
     eager: true,
     cascade: true,
-    onDelete: 'SET NULL',
-    orphanedRowAction: 'delete',
+    onDelete: 'CASCADE',
   })
   @JoinColumn()
   userFrom: User;
@@ -25,8 +24,7 @@ export class CompanyInvite {
   @ManyToOne(() => User, {
     eager: true,
     cascade: true,
-    onDelete: 'SET NULL',
-    orphanedRowAction: 'delete',
+    onDelete: 'CASCADE',
   })
   @JoinColumn()
   targetUser: User;
@@ -34,8 +32,7 @@ export class CompanyInvite {
   @ManyToOne(() => Company, { 
     eager: true,
     cascade: true,
-    onDelete: 'SET NULL',
-    orphanedRowAction: 'delete',
+    onDelete: 'CASCADE',
    })
   @JoinColumn()
   company: Company;
