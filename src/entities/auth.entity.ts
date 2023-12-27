@@ -9,8 +9,7 @@ export class Auth {
   @OneToOne(() => User, {
     eager: true,
     cascade: true,
-    onDelete: 'SET NULL',
-    orphanedRowAction: 'delete',
+    onDelete: 'CASCADE',
   })
   @JoinColumn()
   userId: User

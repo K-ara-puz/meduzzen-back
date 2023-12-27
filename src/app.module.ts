@@ -12,6 +12,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { CompaniesMembersModule } from './companies-members/companies-members.module';
 import { CompaniesInvitesModule } from './companies_invites/companies_invites.module';
 import { CompaniesRolesModule } from './companies_roles/companies_roles.module';
+import { QuizzesModule } from './quizzes/quizzes.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { CompaniesRolesModule } from './companies_roles/companies_roles.module';
     CompaniesModule,
     CompaniesMembersModule,
     CompaniesInvitesModule,
-    CompaniesRolesModule
+    CompaniesRolesModule,
+    QuizzesModule
   ],
   controllers: [AppController],
   providers: [AppService, MyLogger],
