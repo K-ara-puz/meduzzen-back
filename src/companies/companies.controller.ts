@@ -53,6 +53,17 @@ export class CompaniesController {
     return this.companiesService.findAllUserCompanies({ page, limit }, user.id);
   }
 
+  @Get('/user-companies/i-member')
+  @ApiOperation({ summary: 'Get all user companies' })
+  async getCompaniesWhereIMember(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
+    @UserFromToken() user: User,
+  ): Promise<generalResponse<PaginatedItems<CompanyMember[]>>> {
+    limit = limit > 100 ? 100 : limit;
+    return this.companiesService.getCompaniesWhereIMember({ page, limit }, user.id);
+  }
+
   @Get(':id')
   async findOne(
     @Param('id') id: string,

@@ -26,6 +26,7 @@ export class CompaniesMembersService {
         this.companyMemberRepository.createQueryBuilder('company_members');
       queryBuilder
         .leftJoinAndSelect('company_members.company', 'company')
+        .leftJoinAndSelect('company_members.user', 'user')
         .where('company_members.company = :company', { company: companyId })
         .getMany();
       const companyMembers = await paginate<CompanyMember>(

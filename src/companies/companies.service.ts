@@ -50,7 +50,35 @@ export class CompaniesService {
     userId: string
   ): Promise<generalResponse<PaginatedItems<CompanyMember[]>>> {
     try {
-      const paginatedCompanies = await this.companyRepo.findAllUserCompanies(userId, options);
+      const paginatedCompanies = await this.companyRepo.findAllUserCompanies(
+        userId,
+        options,
+      );
+      return {
+        status_code: HttpStatus.OK,
+        detail: {
+          items: paginatedCompanies.items,
+          totalItemsCount: paginatedCompanies.meta.totalItems,
+        },
+        result: 'get paginated companies',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async getCompaniesWhereIMember(
+    options: IPaginationOptions,
+    userId: string
+  ): Promise<generalResponse<PaginatedItems<CompanyMember[]>>> {
+    try {
+      const paginatedCompanies = await this.companyRepo.getCompaniesWhereIMember(
+        userId,
+        options,
+      );
       return {
         status_code: HttpStatus.OK,
         detail: {
@@ -81,11 +109,35 @@ export class CompaniesService {
     }
   }
 
-  async createCompany(
-    companyData: CreateCompanyDto,
-    userId: string
+  async findOneByName(
+    name: string,
   ): Promise<generalResponse<Partial<Company>>> {
     try {
+      const company = await this.companyRepo.findOneByName(name);
+      return {
+        status_code: HttpStatus.OK,
+        detail: company,
+        result: 'get company',
+      };
+    } catch (error) {
+      throw new HttpException('company is not exist', HttpStatus.NOT_FOUND);
+    }
+  }
+
+  async createCompany(
+    companyData: CreateCompanyDto,
+    userId: string,
+  ): Promise<generalResponse<Partial<Company>>> {
+    try {
+      const { detail: existedCompany } = await this.findOneByName(
+        companyData.name,
+      );
+      if (existedCompany)
+        throw new HttpException(
+          'company with this name is already exist',
+          HttpStatus.BAD_REQUEST,
+        );
+
       const company: Partial<Company> =
         await this.companyRepo.create(companyData);
       const companyOwner: CreateCompaniesMemberDto = {
@@ -113,7 +165,15 @@ export class CompaniesService {
     data: Partial<CreateCompanyDto>,
   ): Promise<generalResponse<Partial<Company>>> {
     try {
+      const { detail: existedCompany } = await this.findOneByName(data.name);
+      if (existedCompany)
+        throw new HttpException(
+          'company with this name is already exist',
+          HttpStatus.BAD_REQUEST,
+        );
+
       await this.findOne(id);
+
       const updatedCompany = await this.companyRepo.update(id, data);
       return {
         status_code: HttpStatus.OK,

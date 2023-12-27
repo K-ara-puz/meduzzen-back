@@ -27,7 +27,7 @@ export class CompaniesRolesService {
       queryBuilder
         .leftJoinAndSelect('company_members.company', 'company')
         .leftJoinAndSelect('company_members.user', 'user')
-        .select(['user.id', 'user.email', 'company_members.role'])
+        .select(['user.id', 'user.email', 'user.firstName', 'company_members.role'])
         .where('company_members.company = :company', { company: companyId })
         .andWhere({role: CompanyRoles.admin})
         .getMany();

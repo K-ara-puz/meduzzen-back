@@ -192,6 +192,7 @@ export class CompaniesInvitesService {
 
   async approveInviteRequestToCompany(
     inviteData: InviteUserToCompany,
+    type: string
   ): Promise<generalResponse<CompanyInvite>> {
     try {
       const invite = await this.inviteRepo.findOneByCompanyIdAndUsersId(
@@ -208,11 +209,19 @@ export class CompaniesInvitesService {
           HttpStatus.BAD_REQUEST,
         );
       const approvedInvite = await this.inviteRepo.approve(invite.id);
-      const user = {
+      let user;
+      user = {
         companyId: inviteData.companyId,
         role: CompanyRoles.simpleUser,
-        userId: inviteData.userFromId,
+        userId: inviteData.targetUserId,
       };
+      if (type === CompanyInviteTypes.request) {
+        user = {
+          companyId: inviteData.companyId,
+          role: CompanyRoles.simpleUser,
+          userId: inviteData.userFromId,
+        };
+      }
       await this.companyMembersRepo.create(user);
       return {
         status_code: HttpStatus.OK,

@@ -70,7 +70,7 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string): Promise<User> {
-    return await this.userRepo.findOneByEmail(email);
+    return this.userRepo.findOneByEmail(email);
   }
   
   async create(user: CreateUserDto): Promise<generalResponse<Partial<User>>> {
