@@ -186,21 +186,15 @@ export class QuizzesService {
     try {
       const { detail: companyMember } =
         await this.companyMembersService.findOne(userId, companyId);
-      const lastUserAttempt =
+      const { lastTryDate } =
         await this.quizResultRepo.findLastUserAttemptInCompany(
           quizId,
           companyMember.id,
         );
-      if (lastUserAttempt) {
-        const lastUserAttemptDate = Date.parse(
-          lastUserAttempt.lastTryDate.toString(),
-        );
-        const date = Date.now();
+      if (lastTryDate) {
+        var currentDate = new Date();
 
-        var difference = date - lastUserAttemptDate;
-        var daysDifference = difference / 1000 / 60 / 60 / 24;
-
-        if (daysDifference < 1) {
+        if (currentDate.getDay() - lastTryDate.getDay() < 1) {
           throw new HttpException(
             'You can pass quiz only 1 time per day',
             HttpStatus.FORBIDDEN,
