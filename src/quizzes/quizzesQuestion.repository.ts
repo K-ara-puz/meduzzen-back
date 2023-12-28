@@ -10,6 +10,12 @@ export default class QuizzesQuestionRepo {
     private quizQuestionRepository: Repository<QuizQuestion>,
   ) {}
 
+  async getAllQuizQuestionsCount(quizId: string) {
+    const queryBuilder =
+      this.quizQuestionRepository.createQueryBuilder('question');
+    return queryBuilder.where({ quiz: { id: quizId } }).getCount();
+  }
+
   async create(
     question: IQuizQuestion | IUpdateQuizQuestion,
     quizId: string,

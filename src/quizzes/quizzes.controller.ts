@@ -22,16 +22,22 @@ import { ApiOperation } from '@nestjs/swagger';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
 import { DeleteQuizDto } from './dto/delete-quiz.dto';
 import { UpdateQuizDto } from './dto/update-company-quiz.dto';
+import { MyAuthGuard } from '../auth/auth.guard';
+import { StartQuizDto } from './dto/start-quiz.dto';
+import { UserFromToken } from '../users/decorators/userFromToken.decorator';
+import { User } from '../entities/user.entity';
+import { QuizResult } from '../entities/quizResult.entity';
 
 @Controller('quizzes')
+@UseGuards(MyAuthGuard)
 export class QuizzesController {
   constructor(private readonly quizzesService: QuizzesService) {}
 
-  @Get(':id')
+  @Get('/all/:id')
   @Roles([CompanyRoles.admin, CompanyRoles.owner, CompanyRoles.simpleUser])
   @UseGuards(CompanyRolesGuard)
   @ApiOperation({ summary: 'Get all company quizzes' })
-  async findAllUserCompanies(
+  async findAllCompanyQuizzes(
     @Param() { id: companyId },
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 10,
@@ -43,6 +49,33 @@ export class QuizzesController {
     );
   }
 
+  @Get('one/:quizId/:id')
+  @Roles([CompanyRoles.admin, CompanyRoles.owner, CompanyRoles.simpleUser])
+  @UseGuards(CompanyRolesGuard)
+  @ApiOperation({ summary: 'Get one company quiz' })
+  async findOneQuiz(
+    @Param() { id: companyId, quizId },
+  ): Promise<generalResponse<Partial<Quiz>>> {
+    return this.quizzesService.findOneCompanyQuiz(companyId, quizId);
+  }
+
+  @Get('/average-score-in-company/:id')
+  @Roles([CompanyRoles.admin, CompanyRoles.owner, CompanyRoles.simpleUser])
+  @UseGuards(CompanyRolesGuard)
+  async getAverageScoreInCompany(
+    @Param() { id: companyId },
+    @UserFromToken() user: User
+  ): Promise<generalResponse<Partial<QuizResult>>> {
+    return this.quizzesService.getUserAverageScoreInCompany(user.id, companyId);
+  }
+
+  @Get('/average-score-in-app')
+  async getAverageScoreInApp(
+    @UserFromToken() user: User
+  ): Promise<generalResponse<Partial<QuizResult>>> {
+    return this.quizzesService.getUserAverageScoreInApp(user.id);
+  }
+
   @Post(':id')
   @Roles([CompanyRoles.admin, CompanyRoles.owner])
   @UseGuards(CompanyRolesGuard)
@@ -51,6 +84,17 @@ export class QuizzesController {
     @Param() { id: companyId },
   ): Promise<generalResponse<Quiz>> {
     return this.quizzesService.create(quiz, companyId);
+  }
+
+  @Post('/start/:quizId/:id')
+  @Roles([CompanyRoles.admin, CompanyRoles.owner, CompanyRoles.simpleUser])
+  @UseGuards(CompanyRolesGuard)
+  async startQuiz(
+    @Param() { quizId, id: companyId },
+    @Body() quizData: StartQuizDto,
+    @UserFromToken() user: User
+  ): Promise<generalResponse<Partial<QuizResult>>> {
+    return this.quizzesService.startQuiz(quizId, companyId, user.id, quizData);
   }
 
   @Patch(':id')
