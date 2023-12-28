@@ -10,6 +10,11 @@ export default class QuizzesAnswerRepo {
     private quizAnswerRepository: Repository<QuizAnswer>,
   ) {}
 
+  async findAllByQuestionId(questionId: string): Promise<IQuizAnswer[]> {
+    const queryBuilder = this.quizAnswerRepository.createQueryBuilder('answer');
+    return queryBuilder.where({ question: { id: questionId } }).getMany();
+  }
+
   async create(
     answer: IQuizAnswer | IUpdateQuizAnswer,
     questionId: string,

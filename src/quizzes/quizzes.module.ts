@@ -10,12 +10,14 @@ import QuizzesQuestionRepo from './quizzesQuestion.repository';
 import { QuizAnswer } from '../entities/quizAnswer.entity';
 import QuizzesAnswerRepo from './quizzesAnswer.repository';
 import { QuizzesController } from './quizzes.controller';
+import { QuizResult } from '../entities/quizResult.entity';
+import QuizzesResultRepo from './quizzesResult.repository';
 
 @Module({
   imports: [
     CompaniesRolesModule,
     CompaniesMembersModule,
-    TypeOrmModule.forFeature([Quiz, QuizQuestion, QuizAnswer]),
+    TypeOrmModule.forFeature([Quiz, QuizQuestion, QuizAnswer, QuizResult]),
   ],
   controllers: [QuizzesController],
   providers: [
@@ -23,6 +25,7 @@ import { QuizzesController } from './quizzes.controller';
     QuizzesRepo,
     QuizzesQuestionRepo,
     QuizzesAnswerRepo,
+    QuizzesResultRepo
   ],
 })
 export class QuizzesModule {}
