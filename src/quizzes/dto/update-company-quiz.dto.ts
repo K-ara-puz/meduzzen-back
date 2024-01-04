@@ -10,12 +10,16 @@ import {
 import { Type } from 'class-transformer';
 
 export class IUpdateQuizAnswer {
+  id?: string;
+
   value?: string;
 
   isRight?: boolean;
 }
 
 export class IUpdateQuizQuestion {
+  id?: string;
+
   @IsNotEmpty()
   name: string;
 

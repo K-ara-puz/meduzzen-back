@@ -80,6 +80,42 @@ export class QuizzesService {
     }
   }
 
+  private async findQuizQuestions(companyId: string, quizId: string) {
+    try {
+      const quizQuestions = await this.quizQuestionRepo.getAllQuizQuestions(
+        quizId,
+        companyId,
+      );
+      if (!quizQuestions)
+        throw new HttpException('quiz is not exist', HttpStatus.NOT_FOUND);
+      return quizQuestions;
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async findQuizQuestionsAndAnswers(quizId: string) {
+    try {
+      const quizQuestions =
+        await this.quizQuestionRepo.getAllQuizQuestionsAndAnswers(quizId);
+      if (!quizQuestions)
+        throw new HttpException('quiz is not exist', HttpStatus.NOT_FOUND);
+      return {
+        status_code: HttpStatus.OK,
+        detail: quizQuestions,
+        result: 'quiz questions',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async create(
     quiz: CreateQuizDto,
     companyId: string,
@@ -125,23 +161,33 @@ export class QuizzesService {
       const foundedQuiz = await this.quizRepo.findOneById(quiz.id, companyId);
       if (!foundedQuiz)
         throw new HttpException('quiz is not exist', HttpStatus.NOT_FOUND);
+      const quizQuestions = await this.findQuizQuestions(
+        companyId,
+        foundedQuiz.id,
+      );
       const updatedQuiz = await this.quizRepo.create(
         { id: foundedQuiz.id, ...quiz },
         companyId,
       );
-      updatedQuiz['questions'].forEach(
-        async (question: IUpdateQuizQuestion) => {
-          const createdQuestion = await this.quizQuestionRepo.create(
-            question,
-            updatedQuiz.id,
-          );
-          if (question.answers) {
-            question.answers.forEach(async (answer: IUpdateQuizAnswer) => {
-              await this.quizAnswerRepo.create(answer, createdQuestion.id);
-            });
+      for (const question of updatedQuiz['questions']) {
+        const createdQuestion = await this.quizQuestionRepo.create(
+          question,
+          updatedQuiz.id,
+        );
+        const questionIndex = quizQuestions.findIndex(
+          (el) => el.id === question.id,
+        );
+        quizQuestions.splice(questionIndex, 1);
+        if (question.answers) {
+          for (const answer of question.answers) {
+            await this.quizAnswerRepo.create(answer, createdQuestion.id);
           }
-        },
-      );
+        }
+      }
+      quizQuestions.forEach(async (question) => {
+        await this.quizQuestionRepo.delete(question.id)
+      })
+
       return {
         status_code: HttpStatus.OK,
         detail: updatedQuiz,
@@ -186,15 +232,15 @@ export class QuizzesService {
     try {
       const { detail: companyMember } =
         await this.companyMembersService.findOne(userId, companyId);
-      const { lastTryDate } =
+      const lastUserAttempt =
         await this.quizResultRepo.findLastUserAttemptInCompany(
           quizId,
           companyMember.id,
         );
-      if (lastTryDate) {
+      if (lastUserAttempt) {
         var currentDate = new Date();
 
-        if (currentDate.getDay() - lastTryDate.getDay() < 1) {
+        if (currentDate.getDay() - lastUserAttempt.lastTryDate.getDay() < 1) {
           throw new HttpException(
             'You can pass quiz only 1 time per day',
             HttpStatus.FORBIDDEN,

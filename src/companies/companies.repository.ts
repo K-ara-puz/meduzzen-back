@@ -40,7 +40,7 @@ export default class CompanyRepo {
     qB.innerJoinAndSelect('company_member.user', 'user')
       .innerJoinAndSelect('company_member.company', 'company')
       .where('user.id = :id', { id })
-      .andWhere('company_member.role = :role', {role: CompanyRoles.simpleUser})
+      .andWhere('company_member.role IN (:...roles)', {roles: [CompanyRoles.simpleUser, CompanyRoles.admin]})
       .getMany();
 
     return paginate<CompanyMember>(qB, options);
