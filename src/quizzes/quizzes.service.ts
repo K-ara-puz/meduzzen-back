@@ -11,14 +11,15 @@ import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
 import { DeleteQuizDto } from './dto/delete-quiz.dto';
 import {
-  IUpdateQuizAnswer,
-  IUpdateQuizQuestion,
   UpdateQuizDto,
 } from './dto/update-company-quiz.dto';
 import { StartQuizDto } from './dto/start-quiz.dto';
 import { CompaniesMembersService } from '../companies-members/companies-members.service';
 import QuizzesResultRepo from './quizzesResult.repository';
 import { QuizResult } from '../entities/quizResult.entity';
+import { RedisService } from 'src/redis/redis.service';
+import { QuizQuestion } from 'src/entities/quizQuestion.entity';
+import { QuizAnswer } from 'src/entities/quizAnswer.entity';
 
 @Injectable()
 export class QuizzesService {
@@ -30,6 +31,7 @@ export class QuizzesService {
     private quizAnswerRepo: QuizzesAnswerRepo,
     private quizResultRepo: QuizzesResultRepo,
     private companyMembersService: CompaniesMembersService,
+    private redis: RedisService,
   ) {}
 
   async findAllCompanyQuizzes(
@@ -80,15 +82,19 @@ export class QuizzesService {
     }
   }
 
-  private async findQuizQuestions(companyId: string, quizId: string) {
+  async findQuizQuestions(
+    quizId: string,
+  ): Promise<generalResponse<QuizQuestion[]>> {
     try {
-      const quizQuestions = await this.quizQuestionRepo.getAllQuizQuestions(
-        quizId,
-        companyId,
-      );
+      const quizQuestions =
+        await this.quizQuestionRepo.getAllQuizQuestions(quizId);
       if (!quizQuestions)
         throw new HttpException('quiz is not exist', HttpStatus.NOT_FOUND);
-      return quizQuestions;
+      return {
+        status_code: HttpStatus.OK,
+        detail: quizQuestions,
+        result: 'ok',
+      };
     } catch (error) {
       throw new HttpException(
         error,
@@ -97,10 +103,13 @@ export class QuizzesService {
     }
   }
 
-  async findQuizQuestionsAndAnswers(quizId: string) {
+  async findQuizQuestionsAndAnswers(
+    quizId: string,
+    role: string,
+  ): Promise<generalResponse<QuizAnswer[]>> {
     try {
       const quizQuestions =
-        await this.quizQuestionRepo.getAllQuizQuestionsAndAnswers(quizId);
+        await this.quizQuestionRepo.getAllQuizQuestionsAndAnswers(quizId, role);
       if (!quizQuestions)
         throw new HttpException('quiz is not exist', HttpStatus.NOT_FOUND);
       return {
@@ -161,10 +170,7 @@ export class QuizzesService {
       const foundedQuiz = await this.quizRepo.findOneById(quiz.id, companyId);
       if (!foundedQuiz)
         throw new HttpException('quiz is not exist', HttpStatus.NOT_FOUND);
-      const quizQuestions = await this.findQuizQuestions(
-        companyId,
-        foundedQuiz.id,
-      );
+      const quizQuestions = await this.findQuizQuestions(companyId);
       const updatedQuiz = await this.quizRepo.create(
         { id: foundedQuiz.id, ...quiz },
         companyId,
@@ -174,19 +180,19 @@ export class QuizzesService {
           question,
           updatedQuiz.id,
         );
-        const questionIndex = quizQuestions.findIndex(
+        const questionIndex = quizQuestions.detail.findIndex(
           (el) => el.id === question.id,
         );
-        quizQuestions.splice(questionIndex, 1);
+        quizQuestions.detail.splice(questionIndex, 1);
         if (question.answers) {
           for (const answer of question.answers) {
             await this.quizAnswerRepo.create(answer, createdQuestion.id);
           }
         }
       }
-      quizQuestions.forEach(async (question) => {
-        await this.quizQuestionRepo.delete(question.id)
-      })
+      quizQuestions.detail.forEach(async (question) => {
+        await this.quizQuestionRepo.delete(question.id);
+      });
 
       return {
         status_code: HttpStatus.OK,
@@ -255,9 +261,11 @@ export class QuizzesService {
         company: { id: companyId },
         allQuestionsCount: rating.allQuestionsCount,
         rightQuestionsCount: rating.rightQuestionsCount,
+        answers: rating.answers,
       };
 
       const createdResult = await this.quizResultRepo.create(quizResult);
+      await this.redis.setQuizResult(quizResult, createdResult.id);
 
       return {
         status_code: HttpStatus.OK,
@@ -277,9 +285,15 @@ export class QuizzesService {
     quizId: string,
   ): Promise<Partial<QuizResult>> {
     let rating = 0;
+    let analizedAnswers = [];
     const questionsCount =
       await this.quizQuestionRepo.getAllQuizQuestionsCount(quizId);
     for (const userAnswer of quizData.answers) {
+      let analizedAnswer = {
+        questionId: userAnswer.questionId,
+        answerId: userAnswer.answersId,
+        answerScore: 0,
+      };
       let reallyRightAnswers = [];
       let userRightAnswersPerQuestionCount = 0;
       const answers = await this.quizAnswerRepo.findAllByQuestionId(
@@ -295,13 +309,33 @@ export class QuizzesService {
       }
       let wrongAnswersPerQuestionCount =
         userAnswer.answersId.length - userRightAnswersPerQuestionCount;
+      userRightAnswersPerQuestionCount -= wrongAnswersPerQuestionCount;
 
       rating +=
         (userRightAnswersPerQuestionCount - wrongAnswersPerQuestionCount) /
         reallyRightAnswers.length;
       if (rating < 0) rating = 0;
+      analizedAnswer.answerScore = await this.getAnswerScore(
+        reallyRightAnswers.length,
+        userRightAnswersPerQuestionCount,
+      );
+      analizedAnswers.push(analizedAnswer);
     }
-    return { rightQuestionsCount: rating, allQuestionsCount: questionsCount };
+    return {
+      rightQuestionsCount: rating,
+      allQuestionsCount: questionsCount,
+      answers: JSON.stringify(analizedAnswers),
+    };
+  }
+
+  private async getAnswerScore(
+    rightAnswersCountMustBe: number,
+    userRightAnswerCount: number,
+  ): Promise<number> {
+    if (userRightAnswerCount === 0) {
+      return 0;
+    }
+    return userRightAnswerCount / rightAnswersCountMustBe;
   }
 
   async getUserAverageScoreInCompany(

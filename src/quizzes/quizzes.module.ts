@@ -12,6 +12,7 @@ import QuizzesAnswerRepo from './quizzesAnswer.repository';
 import { QuizzesController } from './quizzes.controller';
 import { QuizResult } from '../entities/quizResult.entity';
 import QuizzesResultRepo from './quizzesResult.repository';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import QuizzesResultRepo from './quizzesResult.repository';
     QuizzesRepo,
     QuizzesQuestionRepo,
     QuizzesAnswerRepo,
-    QuizzesResultRepo
+    QuizzesResultRepo,
+    RedisService
   ],
 })
 export class QuizzesModule {}

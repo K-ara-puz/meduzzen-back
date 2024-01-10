@@ -65,7 +65,16 @@ export class QuizzesController {
   async findQuizQuestionsAndAnswers(
     @Param() { quizId },
   ) {
-    return this.quizzesService.findQuizQuestionsAndAnswers(quizId);
+    return this.quizzesService.findQuizQuestionsAndAnswers(quizId, CompanyRoles.owner);
+  }
+
+  @Get('quiz-questions/:quizId/:id')
+  @Roles([CompanyRoles.admin, CompanyRoles.owner, CompanyRoles.simpleUser])
+  @UseGuards(CompanyRolesGuard)
+  async findQuizQuestions(
+    @Param() { quizId },
+  ) {
+    return this.quizzesService.findQuizQuestionsAndAnswers(quizId, CompanyRoles.simpleUser);
   }
 
   @Get('/average-score-in-company/:id')
