@@ -19,3 +19,7 @@ export const CompanyInviteTypes = Object.freeze({
 export enum TokenErrors {
   expiredToken = 'TokenExpiredError'
 }
+
+export enum RedisConstants {
+  quizResultKey = 'quiz_result'
+}

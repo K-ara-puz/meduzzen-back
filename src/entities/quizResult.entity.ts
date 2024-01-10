@@ -49,4 +49,7 @@ export class QuizResult {
 
   @Column({ default: () => "NOW()" })
   lastTryDate: Date;
+
+  @Column()
+  answers: string;
 }
