@@ -13,12 +13,14 @@ import { QuizzesController } from './quizzes.controller';
 import { QuizResult } from '../entities/quizResult.entity';
 import QuizzesResultRepo from './quizzesResult.repository';
 import { RedisService } from 'src/redis/redis.service';
+import { QuizzesDataExportModule } from './data_export/data-export.module';
 
 @Module({
   imports: [
     CompaniesRolesModule,
     CompaniesMembersModule,
     TypeOrmModule.forFeature([Quiz, QuizQuestion, QuizAnswer, QuizResult]),
+    QuizzesDataExportModule
   ],
   controllers: [QuizzesController],
   providers: [

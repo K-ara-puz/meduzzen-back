@@ -23,3 +23,8 @@ export enum TokenErrors {
 export enum RedisConstants {
   quizResultKey = 'quiz_result'
 }
+
+export enum DataExportFileTypes {
+  json = 'json',
+  csv = 'csv'
+}
