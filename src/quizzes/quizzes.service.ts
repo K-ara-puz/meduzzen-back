@@ -10,9 +10,7 @@ import QuizzesAnswerRepo from './quizzesAnswer.repository';
 import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
 import { DeleteQuizDto } from './dto/delete-quiz.dto';
-import {
-  UpdateQuizDto,
-} from './dto/update-company-quiz.dto';
+import { UpdateQuizDto } from './dto/update-company-quiz.dto';
 import { StartQuizDto } from './dto/start-quiz.dto';
 import { CompaniesMembersService } from '../companies-members/companies-members.service';
 import QuizzesResultRepo from './quizzesResult.repository';
@@ -260,11 +258,14 @@ export class QuizzesService {
         company: { id: companyId },
         allQuestionsCount: rating.allQuestionsCount,
         rightQuestionsCount: rating.rightQuestionsCount,
+        score: +(rating.rightQuestionsCount / rating.allQuestionsCount).toFixed(
+          2,
+        ),
         answers: rating.answers,
       };
 
       const createdResult = await this.quizResultRepo.create(quizResult);
-      quizResult = {...quizResult, answers: JSON.parse(quizResult.answers)}
+      quizResult = { ...quizResult, answers: JSON.parse(quizResult.answers) };
       await this.redis.setQuizResult(quizResult, createdResult.id);
 
       return {
@@ -311,9 +312,7 @@ export class QuizzesService {
         userAnswer.answersId.length - userRightAnswersPerQuestionCount;
       userRightAnswersPerQuestionCount -= wrongAnswersPerQuestionCount;
 
-      rating +=
-        (userRightAnswersPerQuestionCount - wrongAnswersPerQuestionCount) /
-        reallyRightAnswers.length;
+      rating += userRightAnswersPerQuestionCount / reallyRightAnswers.length;
       if (rating < 0) rating = 0;
       analizedAnswer.answerScore = await this.getAnswerScore(
         reallyRightAnswers.length,

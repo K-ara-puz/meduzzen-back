@@ -38,6 +38,107 @@ export default class QuizzesResultRepo {
       .getOne();
   }
 
+  async findAllUserQuizzesAttempts(
+    userId: string,
+  ): Promise<QuizResult[]> {
+    const queryBuilder =
+      this.quizResultRepository.createQueryBuilder('quiz_result');
+    return queryBuilder
+      .leftJoinAndSelect('quiz_result.quiz', 'quiz')
+      .select([
+        'quiz_result.id',
+        'quiz.id',
+        'quiz_result.allQuestionsCount',
+        'quiz_result.rightQuestionsCount',
+        'quiz_result.score',
+        'quiz_result.lastTryDate',
+      ])
+      .where({ user: { id: userId } })
+      .orderBy('quiz.id', 'DESC')
+      .getMany();
+  }
+
+  async findAllCompanyMembersQuizzesAttempts(
+    companyId: string,
+  ): Promise<QuizResult[]> {
+    const queryBuilder =
+      this.quizResultRepository.createQueryBuilder('quiz_result');
+    return queryBuilder
+      .leftJoinAndSelect('quiz_result.quiz', 'quiz')
+      .leftJoinAndSelect('quiz_result.user', 'user')
+      .select([
+        'quiz_result.id',
+        'quiz.id',
+        'user.id',
+        'quiz_result.allQuestionsCount',
+        'quiz_result.rightQuestionsCount',
+        'quiz_result.score',
+        'quiz_result.lastTryDate',
+      ])
+      .where({ company: { id: companyId } })
+      .orderBy('user.id', 'DESC')
+      .getMany();
+  }
+
+  async findOneCompanyMemberQuizzesAttempts(
+    companyId: string,
+    memberId: string
+  ): Promise<QuizResult[]> {
+    const queryBuilder =
+      this.quizResultRepository.createQueryBuilder('quiz_result');
+    return queryBuilder
+      .leftJoinAndSelect('quiz_result.quiz', 'quiz')
+      .leftJoinAndSelect('quiz_result.user', 'user')
+      .leftJoinAndSelect('quiz_result.companyMember', 'member')
+      .select([
+        'quiz_result.id',
+        'quiz.id',
+        'user.id',
+        'member.id',
+        'quiz_result.allQuestionsCount',
+        'quiz_result.rightQuestionsCount',
+        'quiz_result.score',
+        'quiz_result.lastTryDate',
+      ])
+      .where({ company: { id: companyId } })
+      .andWhere({ companyMember: { id: memberId } })
+      .orderBy('quiz.id', 'DESC')
+      .getMany();
+  }
+
+  async findAllCompanyMembersQuizzesListWithLastTryDate(
+    companyId: string,
+  ): Promise<QuizResult[]> {
+    const queryBuilder =
+      this.quizResultRepository.createQueryBuilder('quiz_result');
+    return queryBuilder
+      .leftJoinAndSelect('quiz_result.company', 'company')
+      .leftJoinAndSelect('quiz_result.companyMember', 'member')
+      .select([
+        'member.id',
+      ])
+      .addSelect("MAX(quiz_result.lastTryDate)", "lastTryDate")
+      .where({ company: { id: companyId } })
+      .groupBy('member.id')
+      .getRawMany();
+  }
+
+  async findAllUserQuizzesListWithLastTryDate(
+    userId: string,
+  ): Promise<QuizResult[]> {
+    const queryBuilder =
+      this.quizResultRepository.createQueryBuilder('quiz_result');
+    return queryBuilder
+      .leftJoinAndSelect('quiz_result.quiz', 'quiz')
+      .select([
+        'quiz.id',
+      ])
+      .addSelect("MAX(quiz_result.lastTryDate)", "lastTryDate")
+      .where({ user: { id: userId } })
+      .groupBy('quiz.id')
+      .getRawMany();
+  }
+
   async getAverageInCompany(memberId: string, companyId: string) {
     const queryBuilder =
       this.quizResultRepository.createQueryBuilder('quiz_result');
