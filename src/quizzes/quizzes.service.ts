@@ -245,7 +245,6 @@ export class QuizzesService {
         );
       if (lastUserAttempt) {
         var currentDate = new Date();
-
         if (currentDate.getDay() - lastUserAttempt.lastTryDate.getDay() < 1) {
           throw new HttpException(
             'You can pass quiz only 1 time per day',
@@ -254,7 +253,7 @@ export class QuizzesService {
         }
       }
       const rating = await this.getQuizRating(quizData, quizId);
-      const quizResult = {
+      let quizResult = {
         companyMember: { id: companyMember.id },
         user: { id: userId },
         quiz: { id: quizId },
@@ -265,6 +264,7 @@ export class QuizzesService {
       };
 
       const createdResult = await this.quizResultRepo.create(quizResult);
+      quizResult = {...quizResult, answers: JSON.parse(quizResult.answers)}
       await this.redis.setQuizResult(quizResult, createdResult.id);
 
       return {
