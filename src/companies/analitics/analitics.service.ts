@@ -11,10 +11,11 @@ export class AnaliticsService {
     userId: string,
   ): Promise<generalResponse<QuizResult[]>> {
     try {
-      const results =
+      let results =
         await this.quizResultRepo.findAllUserQuizzesAttempts(userId);
       if (!results)
         throw new HttpException('results are not exist', HttpStatus.NOT_FOUND);
+      results = await this.makeDataWithTime(results);
       return {
         status_code: HttpStatus.OK,
         detail: results,
@@ -25,16 +26,49 @@ export class AnaliticsService {
     }
   }
 
+  private makeDataWithTime = async (
+    data: QuizResult[],
+  ): Promise<QuizResult[]> => {
+    let parsedData = [];
+
+    data.forEach((el) => {
+      let existedMember = parsedData.find((elem) => elem.userId === el.user.id);
+      let memberResult = {
+        quizId: el.quiz.id,
+        score: el.score,
+        date: el.lastTryDate,
+        userName: el.user.firstName,
+      };
+      if (existedMember) {
+        parsedData[parsedData.indexOf(existedMember)].results.push(
+          memberResult,
+        );
+        return;
+      }
+      let startPoint = {
+        userId: el.user.id,
+        userName: el.user.firstName,
+        memberId: el.companyMember.id,
+        results: [],
+      };
+      startPoint.results.push(memberResult);
+      parsedData.push(startPoint);
+    });
+
+    return parsedData;
+  };
+
   async getAllCompanyMembersQuizzesScoresList(
     companyId: string,
   ): Promise<generalResponse<QuizResult[]>> {
     try {
-      const results =
+      let results =
         await this.quizResultRepo.findAllCompanyMembersQuizzesAttempts(
           companyId,
         );
       if (!results)
         throw new HttpException('results are not exist', HttpStatus.NOT_FOUND);
+      results = await this.makeDataWithTime(results);
       return {
         status_code: HttpStatus.OK,
         detail: results,

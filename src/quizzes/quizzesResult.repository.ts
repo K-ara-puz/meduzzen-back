@@ -1,5 +1,5 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { LessThan, MoreThan, Repository } from 'typeorm';
 import { QuizResult } from '../entities/quizResult.entity';
 
 interface IQuizResult {
@@ -38,16 +38,19 @@ export default class QuizzesResultRepo {
       .getOne();
   }
 
-  async findAllUserQuizzesAttempts(
-    userId: string,
-  ): Promise<QuizResult[]> {
+  async findAllUserQuizzesAttempts(userId: string): Promise<QuizResult[]> {
     const queryBuilder =
       this.quizResultRepository.createQueryBuilder('quiz_result');
     return queryBuilder
       .leftJoinAndSelect('quiz_result.quiz', 'quiz')
+      .leftJoinAndSelect('quiz_result.user', 'user')
+      .leftJoinAndSelect('quiz_result.companyMember', 'member')
       .select([
         'quiz_result.id',
         'quiz.id',
+        'user.id',
+        'user.firstName',
+        'member.id',
         'quiz_result.allQuestionsCount',
         'quiz_result.rightQuestionsCount',
         'quiz_result.score',
@@ -63,26 +66,46 @@ export default class QuizzesResultRepo {
   ): Promise<QuizResult[]> {
     const queryBuilder =
       this.quizResultRepository.createQueryBuilder('quiz_result');
+    const resultDate = {
+      year: new Date().getFullYear(),
+      month: new Date().getMonth() + 1,
+      day: new Date().getDate(),
+    };
     return queryBuilder
       .leftJoinAndSelect('quiz_result.quiz', 'quiz')
       .leftJoinAndSelect('quiz_result.user', 'user')
+      .leftJoinAndSelect('quiz_result.companyMember', 'member')
       .select([
         'quiz_result.id',
         'quiz.id',
         'user.id',
+        'user.firstName',
+        'member.id',
         'quiz_result.allQuestionsCount',
         'quiz_result.rightQuestionsCount',
         'quiz_result.score',
         'quiz_result.lastTryDate',
       ])
       .where({ company: { id: companyId } })
+      .andWhere({
+        lastTryDate: MoreThan(
+          `${resultDate.year}-${resultDate.month}-${
+            resultDate.day - 7
+          }  00:00:00`,
+        ),
+      })
+      .andWhere({
+        lastTryDate: LessThan(
+          `${resultDate.year}-${resultDate.month}-${resultDate.day}  00:00:00`,
+        ),
+      })
       .orderBy('user.id', 'DESC')
       .getMany();
   }
 
   async findOneCompanyMemberQuizzesAttempts(
     companyId: string,
-    memberId: string
+    memberId: string,
   ): Promise<QuizResult[]> {
     const queryBuilder =
       this.quizResultRepository.createQueryBuilder('quiz_result');
@@ -114,10 +137,8 @@ export default class QuizzesResultRepo {
     return queryBuilder
       .leftJoinAndSelect('quiz_result.company', 'company')
       .leftJoinAndSelect('quiz_result.companyMember', 'member')
-      .select([
-        'member.id',
-      ])
-      .addSelect("MAX(quiz_result.lastTryDate)", "lastTryDate")
+      .select(['member.id'])
+      .addSelect('MAX(quiz_result.lastTryDate)', 'lastTryDate')
       .where({ company: { id: companyId } })
       .groupBy('member.id')
       .getRawMany();
@@ -130,12 +151,12 @@ export default class QuizzesResultRepo {
       this.quizResultRepository.createQueryBuilder('quiz_result');
     return queryBuilder
       .leftJoinAndSelect('quiz_result.quiz', 'quiz')
-      .select([
-        'quiz.id',
-      ])
-      .addSelect("MAX(quiz_result.lastTryDate)", "lastTryDate")
+      .leftJoinAndSelect('quiz_result.company', 'company')
+      .select(['quiz.id', 'quiz.name', 'company.id'])
+      .addSelect('MAX(quiz_result.lastTryDate)', 'lastTryDate')
       .where({ user: { id: userId } })
       .groupBy('quiz.id')
+      .addGroupBy('company.id')
       .getRawMany();
   }
 

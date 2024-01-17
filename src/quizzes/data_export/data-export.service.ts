@@ -8,6 +8,10 @@ import { QuizResult } from 'src/entities/quizResult.entity';
 export class QuizzesDataExportService {
   constructor(private quizzesDataExportRepo: QuizzesDataExportRepo) {}
 
+  private json2csvOptions = {
+    delimiter: {field: ";"}
+  }
+
   private async parseResultsAnswers(
     results: QuizResult[],
   ): Promise<QuizResult[]> {
@@ -30,7 +34,7 @@ export class QuizzesDataExportService {
       if (!results)
         throw new HttpException('results are not exist', HttpStatus.NOT_FOUND);
       if (dataType === DataExportFileTypes.csv)
-        return converter.json2csv(results);
+        return converter.json2csv(results, this.json2csvOptions);
       return results;
     } catch (error) {
       throw new HttpException(
@@ -54,7 +58,7 @@ export class QuizzesDataExportService {
       if (!results)
         throw new HttpException('results are not exist', HttpStatus.NOT_FOUND);
       if (dataType === DataExportFileTypes.csv)
-        return converter.json2csv(results);
+        return converter.json2csv(results, this.json2csvOptions);
       return results;
     } catch (error) {
       throw new HttpException(
@@ -75,7 +79,7 @@ export class QuizzesDataExportService {
       if (!results)
         throw new HttpException('results are not exist', HttpStatus.NOT_FOUND);
       if (dataType === DataExportFileTypes.csv)
-        return converter.json2csv(results);
+        return converter.json2csv(results, this.json2csvOptions);
       return results;
     } catch (error) {
       throw new HttpException(
@@ -99,7 +103,7 @@ export class QuizzesDataExportService {
       if (!results)
         throw new HttpException('results are not exist', HttpStatus.NOT_FOUND);
       if (dataType === DataExportFileTypes.csv)
-        return converter.json2csv(results);
+        return converter.json2csv(results, this.json2csvOptions);
       return results;
     } catch (error) {
       throw new HttpException(
