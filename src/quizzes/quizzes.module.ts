@@ -31,5 +31,6 @@ import { QuizzesDataExportModule } from './data_export/data-export.module';
     QuizzesResultRepo,
     RedisService
   ],
+  exports: [QuizzesService, QuizzesResultRepo]
 })
 export class QuizzesModule {}

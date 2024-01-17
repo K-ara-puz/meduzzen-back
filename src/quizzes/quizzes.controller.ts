@@ -87,11 +87,11 @@ export class QuizzesController {
     return this.quizzesService.getUserAverageScoreInCompany(user.id, companyId);
   }
 
-  @Get('/average-score-in-app')
+  @Get('/average-score-in-app/:userId')
   async getAverageScoreInApp(
-    @UserFromToken() user: User
+    @Param('userId') userId: string
   ): Promise<generalResponse<Partial<QuizResult>>> {
-    return this.quizzesService.getUserAverageScoreInApp(user.id);
+    return this.quizzesService.getUserAverageScoreInApp(userId);
   }
 
   @Post(':id')

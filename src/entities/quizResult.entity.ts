@@ -15,6 +15,9 @@ export class QuizResult {
   @Column('decimal', { precision: 3, scale: 1 })
   rightQuestionsCount: number;
 
+  @Column('decimal', { precision: 3, scale: 2 })
+  score: number;
+
   @ManyToOne(() => CompanyMember, (companyMember) => companyMember.id, { 
     eager: true,
     cascade: true,

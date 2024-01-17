@@ -15,6 +15,7 @@ import { CompaniesRolesModule } from './companies_roles/companies_roles.module';
 import { QuizzesModule } from './quizzes/quizzes.module';
 import { RedisModule, RedisModuleOptions } from '@liaoliaots/nestjs-redis';
 import { RedisService } from './redis/redis.service';
+import { AnaliticsModule } from './companies/analitics/analitics.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { RedisService } from './redis/redis.service';
         };
       },
     }),
+    AnaliticsModule,
   ],
   controllers: [AppController],
   providers: [AppService, MyLogger, RedisService],
