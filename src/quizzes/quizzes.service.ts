@@ -18,6 +18,10 @@ import { QuizResult } from '../entities/quizResult.entity';
 import { RedisService } from 'src/redis/redis.service';
 import { QuizQuestion } from 'src/entities/quizQuestion.entity';
 import { QuizAnswer } from 'src/entities/quizAnswer.entity';
+import { SocketsGateway } from 'src/sockets/sockets.gateway';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { CompaniesService } from 'src/companies/companies.service';
+import { ModuleRef } from '@nestjs/core';
 
 @Injectable()
 export class QuizzesService {
@@ -30,6 +34,9 @@ export class QuizzesService {
     private quizResultRepo: QuizzesResultRepo,
     private companyMembersService: CompaniesMembersService,
     private redis: RedisService,
+    private socket: SocketsGateway,
+    private notificationsService: NotificationsService,
+    private moduleRef: ModuleRef,
   ) {}
 
   async findAllCompanyQuizzes(
@@ -126,6 +133,7 @@ export class QuizzesService {
   async create(
     quiz: CreateQuizDto,
     companyId: string,
+    initiatorUserId: string,
   ): Promise<generalResponse<Quiz>> {
     try {
       const foundedQuiz = await this.quizRepo.findOneByName({
@@ -147,6 +155,11 @@ export class QuizzesService {
           await this.quizAnswerRepo.create(answer, createdQuestion.id);
         });
       });
+      this.prepareNotifyDataAfterQuizAdded(
+        companyId,
+        initiatorUserId,
+        createdQuiz.name,
+      );
       return {
         status_code: HttpStatus.OK,
         detail: createdQuiz,
@@ -158,6 +171,34 @@ export class QuizzesService {
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  private async prepareNotifyDataAfterQuizAdded(
+    companyId: string,
+    initiatorUserId: string,
+    createdQuizName: string,
+  ): Promise<void> {
+    const companiesService = this.moduleRef.get(CompaniesService, {
+      strict: false,
+    });
+    const { detail: company } = await companiesService.findOne(companyId);
+    const { detail: members } =
+      await this.companyMembersService.getCompanyMembers(
+        { page: 1, limit: 100 },
+        companyId,
+      );
+    members.items.forEach(async (member) => {
+      if (member.user.id === initiatorUserId) return;
+      await this.notificationsService.createAddedCompanyQuizNotification({
+        userId: member.user.id,
+        text: `Try a new quiz: ${createdQuizName}. In ${company.name}.`,
+      });
+    });
+    this.socket.handleAddQuizInCompany(
+      companyId,
+      company.name,
+      createdQuizName,
+    );
   }
 
   async update(

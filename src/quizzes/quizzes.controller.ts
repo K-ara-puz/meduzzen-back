@@ -100,8 +100,9 @@ export class QuizzesController {
   async createQuiz(
     @Body() quiz: CreateQuizDto,
     @Param() { id: companyId },
+    @UserFromToken() user: User
   ): Promise<generalResponse<Quiz>> {
-    return this.quizzesService.create(quiz, companyId);
+    return this.quizzesService.create(quiz, companyId, user.id);
   }
 
   @Post('/start/:quizId/:id')
