@@ -14,12 +14,15 @@ import { QuizResult } from '../entities/quizResult.entity';
 import QuizzesResultRepo from './quizzesResult.repository';
 import { RedisService } from 'src/redis/redis.service';
 import { QuizzesDataExportModule } from './data_export/data-export.module';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { Notification } from 'src/entities/notification';
+import NotificationsRepo from 'src/notifications/notifications.repository';
 
 @Module({
   imports: [
     CompaniesRolesModule,
     CompaniesMembersModule,
-    TypeOrmModule.forFeature([Quiz, QuizQuestion, QuizAnswer, QuizResult]),
+    TypeOrmModule.forFeature([Quiz, QuizQuestion, QuizAnswer, QuizResult, Notification]),
     QuizzesDataExportModule
   ],
   controllers: [QuizzesController],
@@ -29,7 +32,9 @@ import { QuizzesDataExportModule } from './data_export/data-export.module';
     QuizzesQuestionRepo,
     QuizzesAnswerRepo,
     QuizzesResultRepo,
-    RedisService
+    RedisService,
+    NotificationsService,
+    NotificationsRepo
   ],
   exports: [QuizzesService, QuizzesResultRepo]
 })

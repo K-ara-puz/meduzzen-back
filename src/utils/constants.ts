@@ -28,3 +28,8 @@ export enum DataExportFileTypes {
   json = 'json',
   csv = 'csv'
 }
+
+export enum NotificationsStatus {
+  received = 'received',
+  viewed = 'viewed'
+}

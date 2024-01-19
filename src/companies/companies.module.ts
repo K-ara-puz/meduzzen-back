@@ -19,7 +19,7 @@ import { CompaniesRolesModule } from '../companies_roles/companies_roles.module'
     CompanyMembersRepo,
     CompaniesMembersService,
   ],
-  exports: [CompanyRepo, CompanyMembersRepo]
+  exports: [CompanyRepo, CompanyMembersRepo, CompaniesService]
 })
 export class CompaniesModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -16,6 +16,8 @@ import { QuizzesModule } from './quizzes/quizzes.module';
 import { RedisModule, RedisModuleOptions } from '@liaoliaots/nestjs-redis';
 import { RedisService } from './redis/redis.service';
 import { AnaliticsModule } from './companies/analitics/analitics.module';
+import { SocketsModule } from './sockets/sockets.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -45,6 +47,8 @@ import { AnaliticsModule } from './companies/analitics/analitics.module';
       },
     }),
     AnaliticsModule,
+    SocketsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, MyLogger, RedisService],
