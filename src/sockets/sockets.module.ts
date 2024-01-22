@@ -1,10 +1,10 @@
 import { Global, Module } from '@nestjs/common';
 import { SocketsGateway } from './sockets.gateway';
-import { CompaniesModule } from 'src/companies/companies.module';
+import { CompaniesMembersModule } from 'src/companies-members/companies-members.module';
 
 @Global()
 @Module({
-  imports: [CompaniesModule],
+  imports: [CompaniesMembersModule],
   providers: [SocketsGateway],
   exports: [SocketsGateway]
 })

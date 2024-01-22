@@ -25,17 +25,22 @@ export default class QuizzesResultRepo {
     private quizResultRepository: Repository<QuizResult>,
   ) {}
 
-  async findLastUserAttemptInCompany(
+  async findLastQuizUserAttemptsForToday(
     quizId: string,
-    memberId: string,
-  ): Promise<QuizResult> {
+    userId: string,
+  ): Promise<QuizResult[]> {
     const queryBuilder =
       this.quizResultRepository.createQueryBuilder('quiz_result');
+
+    const currentDay = new Date();
     return queryBuilder
       .orderBy('quiz_result.lastTryDate', 'DESC')
       .where({ quiz: { id: quizId } })
-      .andWhere({ companyMember: { id: memberId } })
-      .getOne();
+      .andWhere({ user: { id: userId } })
+      .andWhere({
+        lastTryDate: MoreThan(new Date(new Date().setUTCHours(0, 0, 0))),
+      })
+      .getMany();
   }
 
   async findAllUserQuizzesAttempts(userId: string): Promise<QuizResult[]> {
@@ -152,7 +157,7 @@ export default class QuizzesResultRepo {
     return queryBuilder
       .leftJoinAndSelect('quiz_result.quiz', 'quiz')
       .leftJoinAndSelect('quiz_result.company', 'company')
-      .select(['quiz.id', 'quiz.name', 'company.id'])
+      .select(['quiz.id', 'quiz.name', 'quiz.attemptsPerDay', 'company.id'])
       .addSelect('MAX(quiz_result.lastTryDate)', 'lastTryDate')
       .where({ user: { id: userId } })
       .groupBy('quiz.id')
