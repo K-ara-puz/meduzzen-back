@@ -7,7 +7,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CompaniesService } from 'src/companies/companies.service';
+import { CompaniesMembersService } from 'src/companies-members/companies-members.service';
 
 const configService = new ConfigService();
 
@@ -20,38 +20,50 @@ export class SocketsGateway {
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly companyService: CompaniesService) {}
-  handleAddQuizInCompany(
+  constructor(
+    private readonly companyMembersService: CompaniesMembersService,
+  ) {}
+  async handleAddQuizInCompany(
+    initiatorUserId: string,
     companyId: string,
     companyName: string,
     quizName: string,
-  ) {
-    this.server.to(companyId).emit('add_quiz', {
-      quizName,
-      companyName,
-      fromServer: 'new quiz was added',
+  ): Promise<void> {
+    const { detail: members } =
+      await this.companyMembersService.getCompanyMembers(
+        { page: 1, limit: 5000 },
+        companyId,
+      );
+    members.items.forEach((member) => {
+      if (member.user.id === initiatorUserId) return;
+      this.server.to(member.user.id).emit('add_quiz', {
+        quizName,
+        companyName,
+        fromServer: 'new quiz was added',
+      });
+    });
+  }
+
+  async handleUserCanPassQuizNotify(
+    userId: string,
+    text: string,
+  ): Promise<void> {
+    this.server.to(userId).emit('user_can_pass_quiz', {
+      text,
+      fromServer: 'You already can pass this quiz',
     });
   }
 
   @SubscribeMessage('message')
-  handleMessage(@MessageBody() data: string) {
+  async handleMessage(@MessageBody() data: string): Promise<void> {
     this.server.emit('message', { yourMessage: data, fromServer: 'ok' });
   }
 
-  @SubscribeMessage('join_companies_rooms')
+  @SubscribeMessage('join_user_room')
   async handleJoinRoom(
     @MessageBody() userId: string,
     @ConnectedSocket() client: Socket,
-  ) {
-    let companiesRoomsIds = [];
-    const { detail: companies } =
-      await this.companyService.getCompaniesWhereIMember(
-        { page: 1, limit: 5000 },
-        userId,
-      );
-    companies.items.forEach((element) => {
-      companiesRoomsIds.push(element.company.id);
-    });
-    client.join(companiesRoomsIds);
+  ): Promise<void> {
+    client.join(userId);
   }
 }

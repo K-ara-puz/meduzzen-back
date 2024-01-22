@@ -18,6 +18,8 @@ import { RedisService } from './redis/redis.service';
 import { AnaliticsModule } from './companies/analitics/analitics.module';
 import { SocketsModule } from './sockets/sockets.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SheduleTasksModule } from './shedule_tasks/shedule_tasks.module';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     CompaniesInvitesModule,
     CompaniesRolesModule,
     QuizzesModule,
+    ScheduleModule.forRoot(),
     RedisModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -49,6 +52,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     AnaliticsModule,
     SocketsModule,
     NotificationsModule,
+    SheduleTasksModule,
   ],
   controllers: [AppController],
   providers: [AppService, MyLogger, RedisService],

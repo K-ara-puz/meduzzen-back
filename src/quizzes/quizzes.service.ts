@@ -195,6 +195,7 @@ export class QuizzesService {
       });
     });
     this.socket.handleAddQuizInCompany(
+      initiatorUserId,
       companyId,
       company.name,
       createdQuizName,
@@ -275,21 +276,22 @@ export class QuizzesService {
     quizData: StartQuizDto,
   ): Promise<generalResponse<Partial<QuizResult>>> {
     try {
+      const { detail: quiz } = await this.findOneCompanyQuiz(companyId, quizId);
       const { detail: companyMember } =
         await this.companyMembersService.findOne(userId, companyId);
-      const lastUserAttempt =
-        await this.quizResultRepo.findLastUserAttemptInCompany(
+      const lastTriesForToday =
+        await this.quizResultRepo.findLastQuizUserAttemptsForToday(
           quizId,
-          companyMember.id,
+          userId,
         );
-      if (lastUserAttempt) {
-        var currentDate = new Date();
-        if (currentDate.getDay() - lastUserAttempt.lastTryDate.getDay() < 1) {
-          throw new HttpException(
-            'You can pass quiz only 1 time per day',
-            HttpStatus.FORBIDDEN,
-          );
-        }
+
+      if (lastTriesForToday.length >= quiz.attemptsPerDay) {
+        throw new HttpException(
+          `You can pass quiz only ${quiz.attemptsPerDay} time${
+            quiz.attemptsPerDay > 1 ? 's' : ''
+          } per day`,
+          HttpStatus.FORBIDDEN,
+        );
       }
       const rating = await this.getQuizRating(quizData, quizId);
       let quizResult = {

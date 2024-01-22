@@ -38,6 +38,17 @@ export class NotificationsService {
     }
   }
 
+  async createUserCanPassQuizNotification(data: INotification): Promise<void> {
+    try {
+      await this.notificationsRepo.create(data);
+    } catch (error) {
+      throw new HttpException(
+        error,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async setViewedNotificationStatus(
     notificationId: string,
     userId: string,
