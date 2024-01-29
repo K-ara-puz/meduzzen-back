@@ -1,8 +1,8 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Notification } from 'src/entities/notification';
+import { Notification } from '../entities/notification';
 import { Repository } from 'typeorm';
 import { INotification } from './interfaces/notification.interface';
-import { NotificationsStatus } from 'src/utils/constants';
+import { NotificationsStatus } from '../utils/constants';
 
 export default class NotificationsRepo {
   constructor(

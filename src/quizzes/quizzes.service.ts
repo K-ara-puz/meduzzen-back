@@ -7,7 +7,7 @@ import { Repository } from 'typeorm';
 import QuizzesRepo from './quizzes.repository';
 import QuizzesQuestionRepo from './quizzesQuestion.repository';
 import QuizzesAnswerRepo from './quizzesAnswer.repository';
-import { IPaginationOptions, paginate } from 'nestjs-typeorm-paginate';
+import { IPaginationMeta, IPaginationOptions, Pagination, paginate } from 'nestjs-typeorm-paginate';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
 import { DeleteQuizDto } from './dto/delete-quiz.dto';
 import { UpdateQuizDto } from './dto/update-company-quiz.dto';
@@ -15,13 +15,14 @@ import { StartQuizDto } from './dto/start-quiz.dto';
 import { CompaniesMembersService } from '../companies-members/companies-members.service';
 import QuizzesResultRepo from './quizzesResult.repository';
 import { QuizResult } from '../entities/quizResult.entity';
-import { RedisService } from 'src/redis/redis.service';
-import { QuizQuestion } from 'src/entities/quizQuestion.entity';
-import { QuizAnswer } from 'src/entities/quizAnswer.entity';
-import { SocketsGateway } from 'src/sockets/sockets.gateway';
-import { NotificationsService } from 'src/notifications/notifications.service';
-import { CompaniesService } from 'src/companies/companies.service';
+import { RedisService } from '../redis/redis.service';
+import { QuizQuestion } from '../entities/quizQuestion.entity';
+import { QuizAnswer } from '../entities/quizAnswer.entity';
+import { SocketsGateway } from '../sockets/sockets.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
+import { CompaniesService } from '../companies/companies.service';
 import { ModuleRef } from '@nestjs/core';
+import { CompanyMember } from 'src/entities/companyMember';
 
 @Injectable()
 export class QuizzesService {
@@ -39,17 +40,24 @@ export class QuizzesService {
     private moduleRef: ModuleRef,
   ) {}
 
+  async paginateQuizzes(
+    options: IPaginationOptions,
+    companyId: string,
+  ): Promise<Pagination<Quiz, IPaginationMeta>> {
+    const queryBuilder = this.quizRepository.createQueryBuilder('quiz');
+    queryBuilder
+      .leftJoinAndSelect('quiz.company', 'company')
+      .where('quiz.company = :company', { company: companyId })
+      .getMany();
+    return paginate<Quiz>(queryBuilder, options);
+  }
+
   async findAllCompanyQuizzes(
     options: IPaginationOptions,
     companyId: string,
   ): Promise<generalResponse<PaginatedItems<Quiz[]>>> {
     try {
-      const queryBuilder = this.quizRepository.createQueryBuilder('quiz');
-      queryBuilder
-        .leftJoinAndSelect('quiz.company', 'company')
-        .where('quiz.company = :company', { company: companyId })
-        .getMany();
-      const companyMembers = await paginate<Quiz>(queryBuilder, options);
+      const companyMembers = await this.paginateQuizzes(options, companyId)
       return {
         status_code: HttpStatus.OK,
         detail: {
@@ -155,7 +163,7 @@ export class QuizzesService {
           await this.quizAnswerRepo.create(answer, createdQuestion.id);
         });
       });
-      this.prepareNotifyDataAfterQuizAdded(
+      this.notifyUsersAfterQuizAdded(
         companyId,
         initiatorUserId,
         createdQuiz.name,
@@ -173,7 +181,7 @@ export class QuizzesService {
     }
   }
 
-  private async prepareNotifyDataAfterQuizAdded(
+  async notifyUsersAfterQuizAdded(
     companyId: string,
     initiatorUserId: string,
     createdQuizName: string,

@@ -4,7 +4,7 @@ import { IQuizQuestion } from './dto/create-companies-quiz.dto';
 import { QuizQuestion } from '../entities/quizQuestion.entity';
 import { IUpdateQuizQuestion } from './dto/update-company-quiz.dto';
 import { QuizAnswer } from '../entities/quizAnswer.entity';
-import { CompanyRoles } from 'src/utils/constants';
+import { CompanyRoles } from '../utils/constants';
 
 export default class QuizzesQuestionRepo {
   constructor(
