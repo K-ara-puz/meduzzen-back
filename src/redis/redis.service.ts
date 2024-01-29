@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { QuizResult } from 'src/entities/quizResult.entity';
 import { generalResponse } from 'src/interfaces/generalResponse.interface';
-import { RedisConstants } from 'src/utils/constants';
+import { RedisConstants } from '../utils/constants';
 
 @Global()
 @Injectable()

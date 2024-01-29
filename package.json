@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.462.0",
+    "@golevelup/ts-jest": "^0.4.0",
     "@liaoliaots/nestjs-redis": "^9.0.5",
     "@nestjs/cache-manager": "^2.1.1",
     "@nestjs/common": "^10.0.0",
@@ -60,10 +61,11 @@
     "typeorm": "^0.3.17"
   },
   "devDependencies": {
+    "@automock/adapters.nestjs": "^2.1.0",
     "@automock/jest": "^1.4.0",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/schematics": "^10.0.0",
-    "@nestjs/testing": "^10.0.0",
+    "@nestjs/testing": "^10.3.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cache-manager-redis-store": "^2.0.4",
     "@types/cookie-parser": "^1.4.6",

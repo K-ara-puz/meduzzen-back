@@ -1,9 +1,9 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { INotification } from './interfaces/notification.interface';
 import NotificationsRepo from './notifications.repository';
-import { NotificationsStatus } from 'src/utils/constants';
-import { generalResponse } from 'src/interfaces/generalResponse.interface';
-import { Notification } from 'src/entities/notification';
+import { NotificationsStatus } from '../utils/constants';
+import { generalResponse } from '../interfaces/generalResponse.interface';
+import { Notification } from '../entities/notification';
 
 @Injectable()
 export class NotificationsService {

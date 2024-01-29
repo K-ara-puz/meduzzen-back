@@ -7,7 +7,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { CompaniesMembersService } from 'src/companies-members/companies-members.service';
+import { CompaniesMembersService } from '../companies-members/companies-members.service';
 
 const configService = new ConfigService();
 

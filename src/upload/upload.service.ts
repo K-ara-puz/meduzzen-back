@@ -11,7 +11,7 @@ export class UploadService {
   constructor(private readonly configService: ConfigService) {}
 
   async upload(filename: string, file: Buffer) {
-    return this.S3Client.send(
+    await this.S3Client.send(
       new PutObjectCommand({
         Bucket: this.configService.get('AWS_IMG_BUCKET'),
         Key: filename,

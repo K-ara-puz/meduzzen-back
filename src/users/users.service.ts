@@ -10,9 +10,9 @@ import UserRepo from './users.repository';
 import { generalResponse } from '../interfaces/generalResponse.interface';
 import { AuthService } from '../auth/auth.service';
 import { ModuleRef } from '@nestjs/core';
-import { UploadService } from 'src/upload/upload.service';
 import AuthRepo from '../auth/auth.repository';
 import { PaginatedItems } from '../interfaces/PaginatedItems.interface';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +21,7 @@ export class UsersService {
     private userRepository: Repository<User>,
     private userRepo: UserRepo,
     private moduleRef: ModuleRef,
-    private readonly uploadService: UploadService
+    private uploadService: UploadService
   ) {}
 
   private logger = new MyLogger(UsersService.name);
@@ -68,7 +68,7 @@ export class UsersService {
       throw new HttpException(error, error.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
+//
   async findOneByEmail(email: string): Promise<User> {
     return this.userRepo.findOneByEmail(email);
   }
@@ -119,14 +119,15 @@ export class UsersService {
   async delete(id: string): Promise<generalResponse<Partial<User>>> {
     this.logger.toLog({ message: 'delete user service' });
     try {
-      const {password, ...user} = await this.userRepo.findOne(id);
+      const user = await this.userRepo.findOne(id);
       if (!user) throw new HttpException('user is not exist', HttpStatus.NOT_FOUND);
+      const {password, ...userWithoutPass} = user;
       const authRepo = this.moduleRef.get(AuthRepo, { strict: false });
       await authRepo.remove(user.id);
       await this.userRepo.delete(id);
       return {
         status_code: HttpStatus.OK,
-        detail: user,
+        detail: userWithoutPass,
         result: 'user was deleted',
       };
     } catch (error) {
